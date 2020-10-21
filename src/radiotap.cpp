@@ -37,7 +37,7 @@ std::uint8_t RadiotapBase::base[] = {
          * wait for an ACK for this frame, and that it won't retry if it doesn't get
          * one.
          */
-        0x08, 0x00,
+        0x00, 0x00,
 };
 
 }

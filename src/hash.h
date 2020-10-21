@@ -6,7 +6,7 @@
 
 namespace wi_fuzz::hash {
 
-std::uint16_t inet_csum(const void *buf, std::size_t hdr_len)
+inline std::uint16_t inet_csum(const void *buf, std::size_t hdr_len)
 {
     unsigned long sum = 0;
     const uint16_t *ip1;
