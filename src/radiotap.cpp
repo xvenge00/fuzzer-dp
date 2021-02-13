@@ -1,7 +1,5 @@
 #include "radiotap.h"
 
-namespace wi_fuzz {
-
 std::uint8_t RadiotapBase::base[] = {
 
         0x00, 0x00, // <-- radiotap version (ignore this)
@@ -39,5 +37,3 @@ std::uint8_t RadiotapBase::base[] = {
          */
         0x00, 0x00,
 };
-
-}

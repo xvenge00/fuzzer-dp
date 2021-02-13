@@ -4,7 +4,7 @@
 #include <cstdint>
 
 
-namespace wi_fuzz {
+//namespace wi_fuzz {
 
 class RadiotapBase {
     static std::uint8_t base[];
@@ -20,6 +20,6 @@ public:
     }
 };
 
-}
+//}
 
 #endif //CPP_RADIOTAP_H
