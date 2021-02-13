@@ -9,6 +9,8 @@
 #include "radiotap.h"
 #include "debug.h"
 #include "fuzzer/fuzzer.h"
+#include "boost/circular_buffer.hpp"
+#include "logging/logging.h"
 
 std::size_t get_radiotap_size(const std::uint8_t *data, std::size_t len) {
     if (len > 4) {
@@ -34,6 +36,10 @@ int8_t get_frame_type(const std::uint8_t *packet, size_t packet_size) {
     return *packet;
 }
 
+struct Config {
+    size_t frame_hist_len;
+};
+
 int main(int argc, char **argv)
 {
     if (argc < 2) {
@@ -49,6 +55,12 @@ int main(int argc, char **argv)
         spdlog::critical("ERROR: {}", errbuf);
         exit(1);
     }
+
+    Config config{
+        .frame_hist_len = 10
+    };
+
+    boost::circular_buffer<std::vector<std::uint8_t>> sent_frames{config.frame_hist_len};
 
     spdlog::info("starting");
 
@@ -66,12 +78,17 @@ int main(int argc, char **argv)
         if (get_frame_type(ieee802_11_data, ieee802_11_size) == IEEE80211_FC0_SUBTYPE_PROBE_REQ) {
             auto *mac = get_prb_req_mac(ieee802_11_data, ieee802_11_size);
 
-            print_mac(mac);
+//            print_mac(mac);
 
             auto frame = FrameFuzzer{}.get_prb_resp(mac);
             pcap_sendpacket(handle, frame.data(), frame.size());
 
-            print_bytes(std::cout, frame.data(), frame.size());
+            sent_frames.push_front(frame);
+
+//            print_bytes(std::cout, frame.data(), frame.size());
+
+//            std::cout << "========================\n";
+            dump_frames(sent_frames);
         }
     }
 #pragma clang diagnostic pop
