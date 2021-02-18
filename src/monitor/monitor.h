@@ -5,15 +5,36 @@
 #include <iostream>
 #include "../logging/ring_buffer.h"
 #include "../logging/logging.h"
+#include "monitor.grpc.pb.h"
+#include <grpc++/grpc++.h>
 
-void monitor(GuardedCircularBuffer<std::vector<std::uint8_t>> &buffer) {
-    while(true) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+struct MonitorService: public monitor::EspMonitor::Service {
+    explicit MonitorService(GuardedCircularBuffer<std::vector<std::uint8_t>> &frame_buff): frame_buff_(frame_buff) {}
 
-        std::cout << "==============================\n";
-        dump_frames(buffer.dump());
+    ::grpc::Status Notify(::grpc::ServerContext *context, const ::google::protobuf::Empty *request, ::google::protobuf::Empty *response) override {
+        dump_frames(frame_buff_.dump());
         std::cout << "==============================" << std::endl;
+
+        return grpc::Status::OK;
     }
+
+private:
+    GuardedCircularBuffer<std::vector<std::uint8_t>> &frame_buff_;
+};
+
+void monitor_esp(GuardedCircularBuffer<std::vector<std::uint8_t>> &buffer) {
+    std::string server_address("0.0.0.0:50051");
+    MonitorService service{buffer};
+
+    grpc::ServerBuilder builder;
+    builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+    builder.RegisterService(&service);
+
+
+    std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
+    std::cout << "Server listening on " << server_address << std::endl;
+
+    server->Wait();
 }
 
 #endif //CPP_MONITOR_H

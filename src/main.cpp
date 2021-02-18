@@ -66,7 +66,7 @@ int main(int argc, char **argv)
     auto sent_frames = GuardedCircularBuffer(boost::circular_buffer<std::vector<std::uint8_t>>(config.frame_hist_len));
 
     // start monitor thread
-    std::thread th_monitor(monitor, std::ref(sent_frames));
+    std::thread th_monitor(monitor_esp, std::ref(sent_frames));
 
     spdlog::info("starting");
 

@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package monitor;
+
+import "google/protobuf/empty.proto";
+
+service EspMonitor {
+  rpc Notify(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+}
