@@ -81,16 +81,21 @@ int main(int argc, char **argv)
         const std::uint8_t *ieee802_11_data = packet + rt_size;
         const std::size_t ieee802_11_size = header.caplen - rt_size;
 
-        if (get_frame_type(ieee802_11_data, ieee802_11_size) == IEEE80211_FC0_SUBTYPE_PROBE_REQ) {
-            auto *mac = get_prb_req_mac(ieee802_11_data, ieee802_11_size);
+        try{
+            if (get_frame_type(ieee802_11_data, ieee802_11_size) == IEEE80211_FC0_SUBTYPE_PROBE_REQ) {
+                auto *mac = get_prb_req_mac(ieee802_11_data, ieee802_11_size);
 
-            print_mac(mac);
+                print_mac(mac);
 
-            auto frame = FrameFuzzer{}.get_prb_resp(mac);
-            pcap_sendpacket(handle, frame.data(), frame.size());
+                auto frame = FrameFuzzer{}.get_prb_resp(mac);
+                pcap_sendpacket(handle, frame.data(), frame.size());
 
-            sent_frames.push_back(frame);
+                sent_frames.push_back(frame);
+            }
+        } catch (std::runtime_error &e) {
+            spdlog::warn("Caught exception.");
         }
+
     }
 #pragma clang diagnostic pop
 }
