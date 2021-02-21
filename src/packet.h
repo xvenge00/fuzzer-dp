@@ -7,7 +7,7 @@
 #include <cstring>
 #include "radiotap.h"
 #include "net80211.h"
-#include "hash.h"
+#include "utils/hash.h"
 
 namespace wi_fuzz {
 

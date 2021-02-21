@@ -1,7 +1,5 @@
-#ifndef CPP_HASH_H
-#define CPP_HASH_H
-
 #include <cstdint>
+#include "hash.h"
 
 const uint32_t crctable[] = {
     0x00000000L, 0x77073096L, 0xee0e612cL, 0x990951baL, 0x076dc419L, 0x706af48fL, 0xe963a535L, 0x9e6495a3L,
@@ -38,19 +36,17 @@ const uint32_t crctable[] = {
     0xb3667a2eL, 0xc4614ab8L, 0x5d681b02L, 0x2a6f2b94L, 0xb40bbe37L, 0xc30c8ea1L, 0x5a05df1bL, 0x2d02ef8dL
 };
 
-uint32_t crc32(uint32_t bytes_sz, const uint8_t *bytes)
+std::uint32_t crc32(std::uint32_t bytes_sz, const std::uint8_t *bytes)
 {
-    uint32_t crc = ~0;
-    uint32_t i;
+    std::uint32_t crc = ~0;
+    std::uint32_t i;
     for(i = 0; i < bytes_sz; ++i) {
         crc = crctable[(crc ^ bytes[i]) & 0xff] ^ (crc >> 8);
     }
     return ~crc;
 }
 
-//namespace wi_fuzz::hash {
-
-inline std::uint16_t inet_csum(const void *buf, std::size_t hdr_len)
+std::uint16_t inet_csum(const void *buf, std::size_t hdr_len)
 {
     unsigned long sum = 0;
     const uint16_t *ip1;
@@ -68,7 +64,3 @@ inline std::uint16_t inet_csum(const void *buf, std::size_t hdr_len)
 
     return (~sum);
 }
-
-//} // namespace wi_fuzz::hash
-
-#endif //CPP_HASH_H

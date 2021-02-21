@@ -8,7 +8,7 @@
 #include <iostream>
 #include <thread>
 #include "radiotap.h"
-#include "debug.h"
+#include "utils/debug.h"
 #include "fuzzer/fuzzer.h"
 #include "boost/circular_buffer.hpp"
 #include "logging/logging.h"

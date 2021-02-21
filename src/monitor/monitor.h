@@ -3,8 +3,8 @@
 
 #include <thread>
 #include <iostream>
-#include "../logging/ring_buffer.h"
-#include "../logging/logging.h"
+#include "logging/ring_buffer.h"
+#include "logging/logging.h"
 #include "monitor.grpc.pb.h"
 #include <grpc++/grpc++.h>
 
@@ -22,19 +22,6 @@ private:
     GuardedCircularBuffer<std::vector<std::uint8_t>> &frame_buff_;
 };
 
-void monitor_esp(GuardedCircularBuffer<std::vector<std::uint8_t>> &buffer) {
-    std::string server_address("0.0.0.0:50051");
-    MonitorService service{buffer};
-
-    grpc::ServerBuilder builder;
-    builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-    builder.RegisterService(&service);
-
-
-    std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
-    std::cout << "Server listening on " << server_address << std::endl;
-
-    server->Wait();
-}
+void monitor_esp(GuardedCircularBuffer<std::vector<std::uint8_t>> &buffer);
 
 #endif //CPP_MONITOR_H
