@@ -3,7 +3,7 @@
 
 #include <thread>
 #include <iostream>
-#include "logging/ring_buffer.h"
+#include "logging/guarded_circular_buffer.h"
 #include "logging/logging.h"
 #include "monitor.grpc.pb.h"
 #include <grpc++/grpc++.h>

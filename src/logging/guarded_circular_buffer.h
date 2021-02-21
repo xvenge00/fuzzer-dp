@@ -1,5 +1,5 @@
-#ifndef CPP_RING_BUFFER_H
-#define CPP_RING_BUFFER_H
+#ifndef CPP_GUARDED_CIRCULAR_BUFFER_H
+#define CPP_GUARDED_CIRCULAR_BUFFER_H
 
 #include <boost/circular_buffer.hpp>
 #include <mutex>
@@ -23,4 +23,4 @@ public:
     }
 };
 
-#endif //CPP_RING_BUFFER_H
+#endif //CPP_GUARDED_CIRCULAR_BUFFER_H

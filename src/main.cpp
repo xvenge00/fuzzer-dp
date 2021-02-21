@@ -13,7 +13,7 @@
 #include "boost/circular_buffer.hpp"
 #include "logging/logging.h"
 #include "monitor/monitor.h"
-#include "logging/ring_buffer.h"
+#include "logging/guarded_circular_buffer.h"
 
 std::size_t get_radiotap_size(const std::uint8_t *data, std::size_t len) {
     if (len > 4) {
