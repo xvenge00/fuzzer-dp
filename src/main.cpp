@@ -14,6 +14,7 @@
 #include "logging/logging.h"
 #include "monitor/monitor.h"
 #include "logging/guarded_circular_buffer.h"
+#include "utils/vector_appender.h"
 
 std::size_t get_radiotap_size(const std::uint8_t *data, std::size_t len) {
     if (len > 4) {
@@ -59,6 +60,8 @@ int main(int argc, char **argv)
         exit(1);
     }
 
+    const std::uint8_t my_mac[6] = {0x00, 0x23, 0x45, 0x67, 0x89, 0xab};
+
     Config config{
         .frame_hist_len = 10
     };
@@ -71,6 +74,8 @@ int main(int argc, char **argv)
     spdlog::info("starting");
 
     struct pcap_pkthdr header{};
+
+    auto fuzzer = FrameFuzzer{my_mac};
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
@@ -87,7 +92,7 @@ int main(int argc, char **argv)
 
                 print_mac(mac);
 
-                auto frame = FrameFuzzer{}.get_prb_resp(mac);
+                auto frame = fuzzer.get_prb_resp(mac);
                 pcap_sendpacket(handle, frame.data(), frame.size());
 
                 sent_frames.push_back(frame);

@@ -2,7 +2,12 @@
 #include "net80211.h"
 #include "fuzzer.h"
 #include "utils/hash.h"
+#include <cstdlib>
+#include "utils/vector_appender.h"
 
+FrameFuzzer::FrameFuzzer(const std::uint8_t *src_mac) {
+    memcpy(source_mac, src_mac, 6);
+}
 
 std::vector<std::uint8_t> get_base_rt() {
     return {
@@ -43,6 +48,72 @@ std::vector<std::uint8_t> get_base_rt() {
     };
 }
 
+std::uint8_t rand_byte() {
+    return rand() % 0xFF;
+}
+
+std::vector<std::uint8_t> rand_vec(size_t len) {
+    std::vector<std::uint8_t> res{};
+    for (size_t i=0; i<len; ++len) {
+        res.emplace_back(rand_byte());
+    }
+
+    return res;
+}
+
+std::vector<std::uint8_t> FrameFuzzer::fuzz_prb_req_content() {
+    /*
+     * Management Frame Information Elements
+     *
+     * 0: Service Set Identity (SSID)
+     * 1: Supported Rates
+     * 2: FH Parameter Set
+     * 3: DS Parameter Set
+     * 4: CF Parameter Set
+     * 5: Traffic Indication Map (TIM)
+     * 6: IBSS Parameter Set
+     * 7-15: Reserved; unused
+     * 16: Challenge text
+     * 17-31: Reserved for challenge text extension
+     * 32-255: Reserved; unused
+     */
+
+    std::vector<std::uint8_t> timestamp{0xa6, 0xee, 0x41, 0x98, 0xf8, 0xb1, 0x05, 0x00};
+    std::vector<std::uint8_t> beacon_interval{0x64, 0x00};
+    std::vector<std::uint8_t> capability{0x01, 0x04};
+
+    std::vector<std::uint8_t> ssid_tag{0x01};
+    std::vector<std::uint8_t> ssid_len{rand_byte()};
+    std::vector<std::uint8_t> ssid = rand_vec(rand_byte());
+
+
+
+
+//    std::vector<std::uint8_t> content {
+//        0xa6, 0xee, 0x41, 0x98, 0xf8, 0xb1, 0x05, 0x00, // timestamp for number of microseconds the device is active
+//        0x64, 0x00, // beacon interval, one unit is 1,024 microseconds
+//        0x01, 0x04, // capability info TODO, strana 80
+//
+//        0x00, // tag number
+//        0x04, // ssid name length
+//        0x46, 0x61, 0x6b, 0x65, // ssid
+//
+//        0x01, // Supported Rates
+//        0x04, // tag length
+//        0x02, 0x04, 0x0b, 0x16, // rates
+//
+//        0x03, // DS parameters (channel)
+//        0x01, // length
+//        0x01,
+//
+//        0x32, // extended supported rates
+//        0x08, // len
+//        0x0c, 0x12, 0x18, 0x24, 0x30, 0x48, 0x60, 0x6c
+//    };
+
+    return combine_vec({timestamp, beacon_interval, capability, ssid_tag, ssid_len, ssid});
+}
+
 std::vector<std::uint8_t> FrameFuzzer::get_prb_resp(const std::uint8_t *dest_mac) {
     std::vector<std::uint8_t> rt = get_base_rt();
 
@@ -58,10 +129,8 @@ std::vector<std::uint8_t> FrameFuzzer::get_prb_resp(const std::uint8_t *dest_mac
     ieee802_frame.i_dur[1] = 0x01;
 
     memcpy(ieee802_frame.i_addr1, dest_mac, 6);   // copy destination mac
-
-    const uint8_t my_mac[6] = {0x01, 0x23, 0x45, 0x67, 0x89, 0xab};
-    memcpy(ieee802_frame.i_addr2, my_mac, 6);   // copy my mac
-    memcpy(ieee802_frame.i_addr3, my_mac, 6);   // copy my mac
+    memcpy(ieee802_frame.i_addr2, source_mac, 6);   // copy my mac
+    memcpy(ieee802_frame.i_addr3, source_mac, 6);   // copy my mac
 
     // idk why
     ieee802_frame.i_seq[0] = 0x90;
@@ -70,14 +139,7 @@ std::vector<std::uint8_t> FrameFuzzer::get_prb_resp(const std::uint8_t *dest_mac
     std::vector<std::uint8_t> ieee802_frame_ {(std::uint8_t *)&ieee802_frame, (std::uint8_t *)&ieee802_frame + sizeof(struct ieee80211_frame)};
 
     /* prb content */
-    std::vector<std::uint8_t> content {
-        0xa6, 0xee, 0x41, 0x98, 0xf8, 0xb1, 0x05, 0x00, 0x64, 0x00, 0x01, 0x04, 0x00, 0x04,
-
-        0x46, 0x61, 0x6b, 0x65, // name
-
-        0x01, 0x04, 0x02, 0x04, 0x0b, 0x16, 0x03, 0x01, 0x01, 0x32, 0x08, 0x0c, 0x12, 0x18,
-        0x24, 0x30, 0x48, 0x60, 0x6c
-    };
+    std::vector<std::uint8_t> content = fuzz_prb_req_content();
 
 
     std::vector<std::uint8_t> result{};
