@@ -3,7 +3,7 @@ set(SOURCES main.cpp)
 add_subdirectory(fuzzer)
 add_subdirectory(utils)
 
-add_executable(wi_fuzz main.cpp radiotap.cpp logging/logging.cpp)
+add_executable(wi_fuzz main.cpp radiotap.cpp logging/logging.cpp monitor/monitor.cpp)
 
 target_link_libraries(wi_fuzz
 					  ${PCAP_LIBRARY}
