@@ -3,6 +3,7 @@
 #include "fuzzer.h"
 #include "utils/hash.h"
 #include <cstdlib>
+#include <iostream>
 #include "utils/vector_appender.h"
 
 FrameFuzzer::FrameFuzzer(const std::uint8_t *src_mac) {
@@ -54,7 +55,7 @@ std::uint8_t rand_byte() {
 
 std::vector<std::uint8_t> rand_vec(size_t len) {
     std::vector<std::uint8_t> res{};
-    for (size_t i=0; i<len; ++len) {
+    for (size_t i=0; i < len; ++i) {
         res.emplace_back(rand_byte());
     }
 
@@ -82,10 +83,29 @@ std::vector<std::uint8_t> FrameFuzzer::fuzz_prb_req_content() {
     std::vector<std::uint8_t> beacon_interval{0x64, 0x00};
     std::vector<std::uint8_t> capability{0x01, 0x04};
 
-    std::vector<std::uint8_t> ssid_tag{0x01};
-    std::vector<std::uint8_t> ssid_len{rand_byte()};
-    std::vector<std::uint8_t> ssid = rand_vec(rand_byte());
+    std::vector<std::uint8_t> ssid_tag{0x00};
+    std::vector<std::uint8_t> ssid_len{255};
+    std::vector<std::uint8_t> ssid = rand_vec(ssid_len[0]);
+//    std::vector<std::uint8_t> ssid_len{rand_byte()};
+//    std::vector<std::uint8_t> ssid = rand_vec(ssid_len[0]);
 
+    std::vector<std::uint8_t> supp_rates{
+//        0x01, // Supported Rates
+//        0x04, // tag length
+//        0x02, 0x04, 0x0b, 0x16, // rates
+    };
+
+    std::vector<std::uint8_t> ds_params{
+//        0x01, // Supported Rates
+//        0x04, // tag length
+//        0x02, 0x04, 0x0b, 0x16, // rates
+    };
+
+    std::vector<std::uint8_t> extended_rates{
+//        0x32, // extended supported rates
+//        0x08, // len
+//        0x0c, 0x12, 0x18, 0x24, 0x30, 0x48, 0x60, 0x6c
+    };
 
 
 
@@ -111,7 +131,7 @@ std::vector<std::uint8_t> FrameFuzzer::fuzz_prb_req_content() {
 //        0x0c, 0x12, 0x18, 0x24, 0x30, 0x48, 0x60, 0x6c
 //    };
 
-    return combine_vec({timestamp, beacon_interval, capability, ssid_tag, ssid_len, ssid});
+    return combine_vec({timestamp, beacon_interval, capability, ssid_tag, ssid_len, ssid, supp_rates, ds_params, extended_rates});
 }
 
 std::vector<std::uint8_t> FrameFuzzer::get_prb_resp(const std::uint8_t *dest_mac) {
