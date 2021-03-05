@@ -75,7 +75,9 @@ int main(int argc, char **argv)
 
     struct pcap_pkthdr header{};
 
-    auto fuzzer = FrameFuzzer{my_mac};
+    auto fuzzer = PrbRespFrameFuzzer{my_mac};
+
+    const std::uint8_t target_mac[6] = {0x3c, 0x71 ,0xbf, 0xa6, 0xe6, 0xd0};
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
@@ -90,12 +92,13 @@ int main(int argc, char **argv)
             if (get_frame_type(ieee802_11_data, ieee802_11_size) == IEEE80211_FC0_SUBTYPE_PROBE_REQ) {
                 auto *mac = get_prb_req_mac(ieee802_11_data, ieee802_11_size);
 
-                print_mac(mac);
+                if (strncmp((const char *)mac, (const char*) target_mac, 6) == 0) {
+                    print_mac(mac);
+                    auto frame = fuzzer.get_prb_resp(mac);
+                    pcap_sendpacket(handle, frame.data(), frame.size());
 
-                auto frame = fuzzer.get_prb_resp(mac);
-                pcap_sendpacket(handle, frame.data(), frame.size());
-
-                sent_frames.push_back(frame);
+                    sent_frames.push_back(frame);
+                }
             }
         } catch (std::runtime_error &e) {
             spdlog::warn("Caught exception.");

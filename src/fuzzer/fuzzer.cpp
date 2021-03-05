@@ -5,8 +5,9 @@
 #include <cstdlib>
 #include <iostream>
 #include "utils/vector_appender.h"
+#include "ssid.h"
 
-FrameFuzzer::FrameFuzzer(const std::uint8_t *src_mac) {
+PrbRespFrameFuzzer::PrbRespFrameFuzzer(const std::uint8_t *src_mac) {
     memcpy(source_mac, src_mac, 6);
 }
 
@@ -62,7 +63,31 @@ std::vector<std::uint8_t> rand_vec(size_t len) {
     return res;
 }
 
-std::vector<std::uint8_t> FrameFuzzer::fuzz_prb_req_content() {
+std::vector<std::uint8_t> FuzzerSSID::next() {
+    std::vector<std::uint8_t> len;
+    std::vector<std::uint8_t> ssid;
+
+    if (curr_len > max_len) {
+        curr_len = 0;
+    } else {
+        curr_len += 10;
+    }
+
+    len = {static_cast<std::uint8_t>(curr_len)};
+
+    if (curr_gen_len > max_gen_len) {
+        curr_gen_len = 0;
+    } else {
+        curr_gen_len += 10;
+    }
+
+    ssid = rand_vec(curr_len);
+
+
+    return combine_vec({len, ssid});
+}
+
+std::vector<std::uint8_t> PrbRespFrameFuzzer::fuzz_prb_req_content() {
     /*
      * Management Frame Information Elements
      *
@@ -84,21 +109,28 @@ std::vector<std::uint8_t> FrameFuzzer::fuzz_prb_req_content() {
     std::vector<std::uint8_t> capability{0x01, 0x04};
 
     std::vector<std::uint8_t> ssid_tag{0x00};
-    std::vector<std::uint8_t> ssid_len{255};
-    std::vector<std::uint8_t> ssid = rand_vec(ssid_len[0]);
+    std::vector<std::uint8_t> ssid;
+    try {
+        ssid = fuzzer_ssid.next();
+    } catch (FuzzException &e) {
+        fuzzer_ssid.init();
+        ssid = fuzzer_ssid.next();
+    }
+//    std::vector<std::uint8_t> ssid_len{255};
+//    std::vector<std::uint8_t> ssid = rand_vec(ssid_len[0]);
 //    std::vector<std::uint8_t> ssid_len{rand_byte()};
 //    std::vector<std::uint8_t> ssid = rand_vec(ssid_len[0]);
 
     std::vector<std::uint8_t> supp_rates{
-//        0x01, // Supported Rates
-//        0x04, // tag length
-//        0x02, 0x04, 0x0b, 0x16, // rates
+        0x01, // Supported Rates
+        0x04, // tag length
+        0x02, 0x04, 0x0b, 0x16, // rates
     };
 
     std::vector<std::uint8_t> ds_params{
-//        0x01, // Supported Rates
-//        0x04, // tag length
-//        0x02, 0x04, 0x0b, 0x16, // rates
+        0x03, // DS parameters (channel)
+        0x01, // length
+        0x01,
     };
 
     std::vector<std::uint8_t> extended_rates{
@@ -131,10 +163,10 @@ std::vector<std::uint8_t> FrameFuzzer::fuzz_prb_req_content() {
 //        0x0c, 0x12, 0x18, 0x24, 0x30, 0x48, 0x60, 0x6c
 //    };
 
-    return combine_vec({timestamp, beacon_interval, capability, ssid_tag, ssid_len, ssid, supp_rates, ds_params, extended_rates});
+    return combine_vec({timestamp, beacon_interval, capability, supp_rates, ds_params, ssid_tag, ssid, extended_rates});
 }
 
-std::vector<std::uint8_t> FrameFuzzer::get_prb_resp(const std::uint8_t *dest_mac) {
+std::vector<std::uint8_t> PrbRespFrameFuzzer::get_prb_resp(const std::uint8_t *dest_mac) {
     std::vector<std::uint8_t> rt = get_base_rt();
 
 //        std::vector<std::uint8_t> mac{mac_arr, mac_arr + 6};
