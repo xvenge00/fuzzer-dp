@@ -5,11 +5,11 @@
 #include <vector>
 
 std::vector<std::uint8_t> get_base_rt();
+//
+//std::uint8_t rand_byte();
+//std::vector<std::uint8_t> rand_vec(size_t len);
 
-std::uint8_t rand_byte();
-std::vector<std::uint8_t> rand_vec(size_t len);
-
-struct FuzzerSSID {
+struct SSIDFuzzer {
     void init() {
         curr_len = 0;
         curr_gen_len = 0;
@@ -33,7 +33,19 @@ struct PrbRespFrameFuzzer {
     std::vector<std::uint8_t> fuzz_prb_req_content();
 
 private:
-    FuzzerSSID fuzzer_ssid{};
+    SSIDFuzzer fuzzer_ssid{};
+
+    std::uint8_t source_mac[6]{};
+};
+
+struct BeaconFrameFuzzer {
+    explicit BeaconFrameFuzzer(const std::uint8_t *src_mac);
+    std::vector<std::uint8_t> next();
+
+private:
+    std::vector<std::uint8_t> fuzz_content();
+
+    SSIDFuzzer ssid_fuzzer{};
 
     std::uint8_t source_mac[6];
 };

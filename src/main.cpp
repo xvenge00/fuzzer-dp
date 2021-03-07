@@ -84,6 +84,29 @@ void fuzz_prb_resp(
 #pragma clang diagnostic pop
 }
 
+[[noreturn]] void fuzz_beacon(
+
+    pcap *handle,
+    const std::uint8_t *src_mac,
+    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames
+) {
+    spdlog::info("fuzzing beacon");
+
+    auto fuzzer = BeaconFrameFuzzer{src_mac};
+
+    while (true) {
+        auto frame = fuzzer.next();
+        pcap_sendpacket(handle, frame.data(), frame.size());
+
+        // uvidime ci to je treba
+        for (int i=0; i<5; ++i) {
+            sent_frames.push_back(frame);
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+}
+
 int main(int argc, char **argv)
 {
     if (argc < 2) {
@@ -112,5 +135,6 @@ int main(int argc, char **argv)
     // start monitor thread
     std::thread th_monitor(monitor_esp, std::ref(sent_frames));
 
-    fuzz_prb_resp(handle, my_mac, target_mac, sent_frames);
+//    fuzz_prb_resp(handle, my_mac, target_mac, sent_frames);
+    fuzz_beacon(handle, my_mac, sent_frames);
 }
