@@ -44,6 +44,46 @@ struct Config {
     size_t frame_hist_len;
 };
 
+void fuzz_prb_resp(
+    pcap *handle,
+    const std::uint8_t *src_mac,
+    const std::uint8_t *fuzz_device_mac,
+    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames
+) {
+    spdlog::info("fuzzing probe response");
+
+    struct pcap_pkthdr header{};
+    auto fuzzer = PrbRespFrameFuzzer{src_mac};
+
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "EndlessLoop"
+    while(true) {
+        const u_char *packet = pcap_next(handle, &header);
+
+        size_t rt_size = get_radiotap_size(packet, header.caplen);
+        const std::uint8_t *ieee802_11_data = packet + rt_size;
+        const std::size_t ieee802_11_size = header.caplen - rt_size;
+
+        try{
+            if (get_frame_type(ieee802_11_data, ieee802_11_size) == IEEE80211_FC0_SUBTYPE_PROBE_REQ) {
+                auto *mac = get_prb_req_mac(ieee802_11_data, ieee802_11_size);
+
+                if (strncmp((const char *)mac, (const char*) fuzz_device_mac, 6) == 0) {
+                    print_mac(mac);
+                    auto frame = fuzzer.get_prb_resp(mac);
+                    pcap_sendpacket(handle, frame.data(), frame.size());
+
+                    sent_frames.push_back(frame);
+                }
+            }
+        } catch (std::runtime_error &e) {
+            spdlog::warn("Caught exception.");
+        }
+
+    }
+#pragma clang diagnostic pop
+}
+
 int main(int argc, char **argv)
 {
     if (argc < 2) {
@@ -61,6 +101,7 @@ int main(int argc, char **argv)
     }
 
     const std::uint8_t my_mac[6] = {0x00, 0x23, 0x45, 0x67, 0x89, 0xab};
+    const std::uint8_t target_mac[6] = {0x3c, 0x71 ,0xbf, 0xa6, 0xe6, 0xd0};    // ESP32
 
     Config config{
         .frame_hist_len = 10
@@ -71,39 +112,5 @@ int main(int argc, char **argv)
     // start monitor thread
     std::thread th_monitor(monitor_esp, std::ref(sent_frames));
 
-    spdlog::info("starting");
-
-    struct pcap_pkthdr header{};
-
-    auto fuzzer = PrbRespFrameFuzzer{my_mac};
-
-    const std::uint8_t target_mac[6] = {0x3c, 0x71 ,0xbf, 0xa6, 0xe6, 0xd0};
-
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "EndlessLoop"
-    while(true) {
-        const u_char *packet = pcap_next(handle, &header);
-
-        size_t rt_size = get_radiotap_size(packet, header.caplen);
-        const std::uint8_t *ieee802_11_data = packet + rt_size;
-        const std::size_t ieee802_11_size = header.caplen - rt_size;
-
-        try{
-            if (get_frame_type(ieee802_11_data, ieee802_11_size) == IEEE80211_FC0_SUBTYPE_PROBE_REQ) {
-                auto *mac = get_prb_req_mac(ieee802_11_data, ieee802_11_size);
-
-                if (strncmp((const char *)mac, (const char*) target_mac, 6) == 0) {
-                    print_mac(mac);
-                    auto frame = fuzzer.get_prb_resp(mac);
-                    pcap_sendpacket(handle, frame.data(), frame.size());
-
-                    sent_frames.push_back(frame);
-                }
-            }
-        } catch (std::runtime_error &e) {
-            spdlog::warn("Caught exception.");
-        }
-
-    }
-#pragma clang diagnostic pop
+    fuzz_prb_resp(handle, my_mac, target_mac, sent_frames);
 }
