@@ -85,7 +85,7 @@ void fuzz_prb_resp(
 }
 
 [[noreturn]] void fuzz_beacon(
-
+    // TODO sleep_for
     pcap *handle,
     const std::uint8_t *src_mac,
     GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames
@@ -93,6 +93,29 @@ void fuzz_prb_resp(
     spdlog::info("fuzzing beacon");
 
     auto fuzzer = BeaconFrameFuzzer{src_mac};
+
+    while (true) {
+        auto frame = fuzzer.next();
+        pcap_sendpacket(handle, frame.data(), frame.size());
+
+        // uvidime ci to je treba
+        for (int i=0; i<5; ++i) {
+            sent_frames.push_back(frame);
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+}
+
+[[noreturn]] void fuzz_disass(
+    pcap *handle,
+    const std::uint8_t *src_mac,
+    const std::uint8_t *dst_mac,
+    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames
+) {
+    spdlog::info("fuzzing disass");
+
+    auto fuzzer = DisassociationFuzzer{src_mac, dst_mac};
 
     while (true) {
         auto frame = fuzzer.next();
@@ -123,8 +146,10 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    const std::uint8_t my_mac[6] = {0x00, 0x23, 0x45, 0x67, 0x89, 0xab};
+    const std::uint8_t my_mac[6] = {0x00, 0x23, 0x45, 0x67, 0x89, 0xab};  // random
+//    const std::uint8_t my_mac[6] = {0x8c, 0xdc, 0x02, 0xd7, 0x35, 0x2b};    // zte router
     const std::uint8_t target_mac[6] = {0x3c, 0x71 ,0xbf, 0xa6, 0xe6, 0xd0};    // ESP32
+//    const std::uint8_t target_mac[6] = {0xd6, 0x10, 0x4e, 0x27, 0xf6, 0xb0};    // mobil
 
     Config config{
         .frame_hist_len = 10
@@ -136,5 +161,6 @@ int main(int argc, char **argv)
     std::thread th_monitor(monitor_esp, std::ref(sent_frames));
 
 //    fuzz_prb_resp(handle, my_mac, target_mac, sent_frames);
-    fuzz_beacon(handle, my_mac, sent_frames);
+//    fuzz_beacon(handle, my_mac, sent_frames);
+    fuzz_disass(handle, my_mac, target_mac, sent_frames);
 }

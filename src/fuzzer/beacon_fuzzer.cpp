@@ -95,7 +95,7 @@ std::vector<std::uint8_t> BeaconFrameFuzzer::next() {
     /* MAC header */
     struct ieee80211_frame ieee802_frame{};
 
-    ieee802_frame.i_fc[0] = 0x80;     // probe response
+    ieee802_frame.i_fc[0] = 0x80;     // beacon
     ieee802_frame.i_fc[1] = 0x00;
 
     ieee802_frame.i_dur[0] = 0x3a;    // copied from wireshark

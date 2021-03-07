@@ -50,4 +50,13 @@ private:
     std::uint8_t source_mac[6];
 };
 
+struct DisassociationFuzzer {
+    explicit DisassociationFuzzer(const std::uint8_t *src_mac, const std::uint8_t *dst_mac);
+    std::vector<std::uint8_t> next();
+
+private:
+    std::uint8_t src_mac[6]{};
+    std::uint8_t dst_mac[6]{};
+};
+
 #endif //CPP_FUZZER_H
