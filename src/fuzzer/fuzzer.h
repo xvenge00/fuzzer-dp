@@ -59,4 +59,13 @@ private:
     std::uint8_t dst_mac[6]{};
 };
 
+struct DeauthentiactionFuzzer {
+    explicit DeauthentiactionFuzzer(const std::uint8_t *src_mac, const std::uint8_t *dst_mac);
+    std::vector<std::uint8_t> next();
+
+private:
+    std::uint8_t src_mac[6]{};
+    std::uint8_t dst_mac[6]{};
+};
+
 #endif //CPP_FUZZER_H
