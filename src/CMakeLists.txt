@@ -13,12 +13,14 @@ target_link_libraries(libwifuzz
 					  gRPC::grpc++
 					  gRPC::grpc++_reflection
 					  fuzzer-protos
+					  ${YAML_CPP_LIBRARIES}
 					  )
 
 target_include_directories(libwifuzz
 						   PRIVATE ${CMAKE_SOURCE_DIR}/src
 						   PRIVATE ${CMAKE_SOURCE_DIR}/thirdparty
 						   PRIVATE "${PROJECT_BINARY_DIR}/proto"
+						   PRIVATE "${YAML_CPP_INCLUDE_DIRS}"
 						   )
 
 add_executable(wi_fuzz main.cpp)

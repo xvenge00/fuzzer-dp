@@ -5,7 +5,7 @@
 #include <pcap.h>
 #include <vector>
 #include "logging/guarded_circular_buffer.h"
-#include "config.h"
+#include "config/config.h"
 
 std::size_t get_radiotap_size(const std::uint8_t *data, std::size_t len);
 

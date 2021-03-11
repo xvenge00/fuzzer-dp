@@ -1,0 +1,8 @@
+{
+  interface: "wlp3s0",
+  random_seed: 420,
+  src_mac: "8c:dc:02:d7:35:2b",
+  test_device_mac: "d6:10:4e:27:f6:b0",
+  fuzzer_type: "deauthentication",
+  frame_history_len: 10
+}

@@ -9,7 +9,7 @@
 #include "fuzzer.h"
 #include "net80211.h"
 #include "utils/debug.h"
-#include "config.h"
+#include "config/config.h"
 
 std::size_t get_radiotap_size(const std::uint8_t *data, std::size_t len) {
     if (len > 4) {

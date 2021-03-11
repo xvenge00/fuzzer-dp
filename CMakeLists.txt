@@ -9,6 +9,7 @@ find_package(PCAP REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(gRPC REQUIRED)
+find_package(yaml-cpp)
 
 add_subdirectory(src)
 add_subdirectory(proto)
