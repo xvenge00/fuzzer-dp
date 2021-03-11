@@ -1,5 +1,5 @@
 #include <cstring>
-#include "fuzzer.h"
+#include "frame_factory.h"
 #include "utils/vector_appender.h"
 #include "net80211.h"
 #include "utils/hash.h"

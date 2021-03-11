@@ -1,5 +1,5 @@
-#ifndef CPP_FUZZER_H
-#define CPP_FUZZER_H
+#ifndef CPP_FRAME_FACTORY_H
+#define CPP_FRAME_FACTORY_H
 
 #include <cinttypes>
 #include <vector>
@@ -68,4 +68,4 @@ private:
     std::uint8_t dst_mac[6]{};
 };
 
-#endif //CPP_FUZZER_H
+#endif //CPP_FRAME_FACTORY_H

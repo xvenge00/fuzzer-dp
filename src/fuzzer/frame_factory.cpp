@@ -1,6 +1,6 @@
 #include <cstring>
 #include "net80211.h"
-#include "fuzzer.h"
+#include "frame_factory.h"
 #include "utils/hash.h"
 #include <cstdlib>
 #include <iostream>
