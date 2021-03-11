@@ -1,14 +1,14 @@
-#ifndef CPP_RANDOM_H
-#define CPP_RANDOM_H
+#ifndef CPP_RAND_PROVIDER_H
+#define CPP_RAND_PROVIDER_H
 
 #include <random>
 
-struct Randomness{
+struct RandProvider{
     std::mt19937 generator;
     std::uniform_int_distribution<std::uint8_t> distribution_byte;
     std::uniform_int_distribution<unsigned> distribution_unsigned;
 
-    explicit Randomness(int seed) : generator(seed), distribution_byte(), distribution_unsigned() {}
+    explicit RandProvider(unsigned seed) : generator(seed), distribution_byte(), distribution_unsigned() {}
 
     std::uint8_t get_byte() {
         return distribution_byte(generator);
@@ -28,4 +28,4 @@ struct Randomness{
     }
 };
 
-#endif //CPP_RANDOM_H
+#endif //CPP_RAND_PROVIDER_H

@@ -6,7 +6,12 @@
 #include "utils/hash.h"
 #include "utils/debug.h"
 
-DisassociationFuzzer::DisassociationFuzzer(const std::uint8_t *src_mac_, const std::uint8_t *dst_mac_) {
+DisassociationFuzzer::DisassociationFuzzer(
+    const std::uint8_t *src_mac_,
+    const std::uint8_t *dst_mac_,
+    unsigned int rand_seed) :
+rand_provider(rand_seed)
+{
     memcpy(src_mac, src_mac_, 6);
     memcpy(dst_mac, dst_mac_, 6);
 }
@@ -33,7 +38,7 @@ std::vector<std::uint8_t> DisassociationFuzzer::next() {
 
     std::vector<std::uint8_t> ieee802_frame_ {(std::uint8_t *)&ieee802_frame, (std::uint8_t *)&ieee802_frame + sizeof(struct ieee80211_frame)};
 
-    std::vector<std::uint8_t> content = rand_vec(rand_byte());
+    std::vector<std::uint8_t> content = rand_provider.get_vector(rand_provider.get_byte());
 
 
 //    std::vector<std::uint8_t> result{};

@@ -6,7 +6,12 @@
 #include "utils/hash.h"
 #include "utils/debug.h"
 
-DeauthentiactionFuzzer::DeauthentiactionFuzzer(const std::uint8_t *src_mac_, const std::uint8_t *dst_mac_) {
+DeauthentiactionFuzzer::DeauthentiactionFuzzer(
+    const std::uint8_t *src_mac_,
+    const std::uint8_t *dst_mac_,
+    unsigned int rand_seed):
+    rand_provider(rand_seed)
+{
     memcpy(src_mac, src_mac_, 6);
     memcpy(dst_mac, dst_mac_, 6);
 }

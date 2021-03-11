@@ -66,7 +66,7 @@ std::vector<std::uint8_t> SSIDFuzzer::next() {
         curr_gen_len += 10;
     }
 
-    ssid = rand_vec(curr_len);
+    ssid = rand_provider.get_vector(curr_len);
 
 
     return combine_vec({len, ssid});

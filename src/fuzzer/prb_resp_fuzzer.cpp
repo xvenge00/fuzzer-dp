@@ -6,7 +6,10 @@
 #include "net80211.h"
 #include "utils/hash.h"
 
-PrbRespFrameFuzzer::PrbRespFrameFuzzer(const std::uint8_t *src_mac) {
+PrbRespFrameFuzzer::PrbRespFrameFuzzer(const std::uint8_t *src_mac, unsigned rand_seed):
+fuzzer_ssid(rand_seed),
+rand_provider(rand_seed)
+{
     memcpy(source_mac, src_mac, 6);
 }
 

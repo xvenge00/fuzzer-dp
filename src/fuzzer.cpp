@@ -36,16 +36,16 @@ int8_t get_frame_type(const std::uint8_t *packet, size_t packet_size) {
 }
 
 
-void fuzz_prb_resp(
-    pcap *handle,
-    const std::uint8_t *src_mac,
-    const std::uint8_t *fuzz_device_mac,
-    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames
-) {
+void fuzz_prb_resp(pcap *handle,
+                   const std::uint8_t *src_mac,
+                   const std::uint8_t *fuzz_device_mac,
+                   GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames,
+                   unsigned rand_seed)
+{
     spdlog::info("fuzzing probe response");
 
     struct pcap_pkthdr header{};
-    auto fuzzer = PrbRespFrameFuzzer{src_mac};
+    auto fuzzer = PrbRespFrameFuzzer{src_mac, rand_seed};
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
@@ -80,11 +80,12 @@ void fuzz_prb_resp(
     // TODO sleep_for
     pcap *handle,
     const std::uint8_t *src_mac,
-    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames
+    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames,
+    unsigned int rand_seed
 ) {
     spdlog::info("fuzzing beacon");
 
-    auto fuzzer = BeaconFrameFuzzer{src_mac};
+    auto fuzzer = BeaconFrameFuzzer{src_mac, rand_seed};
 
     while (true) {
         auto frame = fuzzer.next();
@@ -103,11 +104,12 @@ void fuzz_prb_resp(
     pcap *handle,
     const std::uint8_t *src_mac,
     const std::uint8_t *dst_mac,
-    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames
+    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames,
+    unsigned rand_seed
 ) {
     spdlog::info("fuzzing disass");
 
-    auto fuzzer = DisassociationFuzzer{src_mac, dst_mac};
+    auto fuzzer = DisassociationFuzzer{src_mac, dst_mac, rand_seed};
 
     while (true) {
         auto frame = fuzzer.next();
@@ -126,11 +128,12 @@ void fuzz_prb_resp(
     pcap *handle,
     const std::uint8_t *src_mac,
     const std::uint8_t *dst_mac,
-    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames
+    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames,
+    unsigned rand_seed
 ) {
     spdlog::info("fuzzing disauth");
 
-    auto fuzzer = DeauthentiactionFuzzer{src_mac, dst_mac};
+    auto fuzzer = DeauthentiactionFuzzer{src_mac, dst_mac, rand_seed};
 
     while (true) {
         auto frame = fuzzer.next();
@@ -161,12 +164,14 @@ int fuzz(Config config) {
 
     switch (config.fuzzer_type) {
     case PRB_REQ:
-        fuzz_prb_resp(handle, config.src_mac.data(), config.test_device_mac.data(), sent_frames);
+        fuzz_prb_resp(handle, config.src_mac.data(), config.test_device_mac.data(), sent_frames, config.random_seed);
     case BEACON:
-        fuzz_beacon(handle, config.src_mac.data(), sent_frames);
+        fuzz_beacon(handle, config.src_mac.data(), sent_frames, config.random_seed);
     case DEAUTH:
-        fuzz_deauth(handle, config.src_mac.data(), config.test_device_mac.data(), sent_frames);
+        fuzz_deauth(handle, config.src_mac.data(), config.test_device_mac.data(), sent_frames, config.random_seed);
     case DISASS:
-        fuzz_disass(handle, config.src_mac.data(), config.test_device_mac.data(), sent_frames);
+        fuzz_disass(handle, config.src_mac.data(), config.test_device_mac.data(), sent_frames, config.random_seed);
     }
+
+    return 0;
 }

@@ -4,7 +4,10 @@
 #include "net80211.h"
 #include "utils/hash.h"
 
-BeaconFrameFuzzer::BeaconFrameFuzzer(const std::uint8_t *src_mac) {
+BeaconFrameFuzzer::BeaconFrameFuzzer(const std::uint8_t *src_mac, unsigned int rand_seed):
+ssid_fuzzer(rand_seed),
+rand_provider(rand_seed)
+{
     memcpy(source_mac, src_mac, 6);
 }
 
