@@ -4,6 +4,7 @@
 #include <cinttypes>
 #include <vector>
 #include "utils/rand_provider.h"
+#include "ssid.h"
 
 std::vector<std::uint8_t> get_base_rt();
 //
@@ -16,6 +17,10 @@ struct SSIDFuzzer {
     void init() {
         curr_len = 0;
         curr_gen_len = 0;
+    }
+
+    unsigned num_mutations() {
+        return 10; // TODO
     }
 
     std::vector<std::uint8_t> next();
@@ -37,12 +42,16 @@ struct PrbRespFrameFuzzer {
 
     std::vector<std::uint8_t> fuzz_prb_req_content();
 
+    std::vector<std::uint8_t> fuzz_ssid();
+
 private:
-    SSIDFuzzer fuzzer_ssid;
+    FuzzableSSID fuzzer_ssid{};
 
     RandProvider rand_provider;
 
     std::uint8_t source_mac[6]{};
+
+    unsigned fuzzed_ssids = 0;
 };
 
 struct BeaconFrameFuzzer {
