@@ -25,6 +25,7 @@
 #include <iostream>
 #include <vector>
 #include <utils/vector_appender.h>
+#include <utils/rand_provider.h>
 
 struct Fuzzable {
     bool is_mutable = true;
@@ -127,16 +128,225 @@ private:
     }
 };
 
+//struct FuzzableGeneralCapability: public Fuzzable {
+//    FuzzableGeneralCapability(std::uint8_t id, unsigned random_seed): id(id), rand_provider(random_seed) {}
+//
+//    size_t num_mutations() override {
+//        return fuzzed_sizes.size();
+//    }
+//
+//    std::vector<uint8_t> get_mutated() override {
+//        std::vector<uint8_t> res;
+//
+//        if (i_fuzzed_sizes < fuzzed_sizes.size()) {
+//            auto id_size_pair = std::vector<std::uint8_t> {
+//                id,
+//                fuzzed_sizes[i_fuzzed_sizes]
+//            };
+//
+//            auto content = rand_provider.get_vector(fuzzed_sizes[i_fuzzed_sizes]);
+//
+//            res = combine_vec({id_size_pair, content});
+//
+//            ++i_fuzzed_sizes;
+//        } else if (i_fuzz_dict < fuzz_dict.size()) {
+//            auto id_vec = std::vector<std::uint8_t> {id};
+//
+//            auto &str = fuzz_dict[i_fuzz_dict];
+//
+//            res.reserve(str.length() + 1);
+//
+//            auto ssid_len = std::vector<uint8_t>{(uint8_t) str.length()};
+//            auto ssid = std::vector<uint8_t>{str.begin(), str.end()};
+//            res = combine_vec({id_size_pair, content});
+//
+//            ++i_fuzz_dict;
+//        } else {    // TODO wrong size
+//            res = {};
+//        }
+//
+//        return res;
+//    }
+//
+//private:
+//    RandProvider rand_provider;
+//
+//    std::uint8_t id;
+//    unsigned i_fuzzed_sizes = 0;
+//    std::array<std::uint8_t, 15> fuzzed_sizes{0,1,2,3,4,5,6,7,8,16,32,64,127,128,255};
+//    unsigned i_fuzz_dict = 0;
+//    const std::array<std::string, 23> fuzz_dict {
+//        "!@#$%%^#$%#$@#$%$$@#$%^^**(()",    // strings riped from boofuz
+//        "",
+//        "%00",
+//        "%00/",
+//        "%01%02%03%04%0a%0d%0aADSF",
+//        "%01%02%03@%04%0a%0d%0aADSF",
+//        "%\xfe\xf0%\x00\xff"s,
+//        "%xfexf0%x01xff%xfexf0%x01xff%xfexf0%x01xff%xfexf0%x01xff%xfexf0%x01xff%xfexf0%x01xff%xfexf0%x01xff%xfexf0%x01xff%xfexf0%x01xff%xfexf0%x01xff%xfexf0%x01xff%xfexf0%x01xff%xfexf0%x01xff%xfexf0%x01xff%xfexf0%x01xff%xfexf0%x01xff%xfexf0%x01xff%xfexf0%x01xff%xfexf0%x01xff%xfexf0%x01xff",
+//        "%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n",  // format strings.
+//        "%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n%n",
+//        "%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
+//        "%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
+//        "%u0000",
+//        "/%00/",
+//        "\nfoo",
+//        "foo\n",
+//        "foo\nfoo",
+//        "\0foo\0"s,
+//        "foo\0foo"s,
+//        "\r\n",
+//        "\x01\x02\x03\x04",
+//        "\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE",
+//        "\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE\xFE",
+//    };
+//};
+
 int main(int argc, char **argv)
 {
     auto fuzz_ssid = FuzzableSSID{};
 
-    for (int i = 0; i < fuzz_ssid.num_mutations(); ++i) {
-        auto mutated = fuzz_ssid.get_mutated();
-        for (unsigned char j : mutated) {
-            std::cout << j;
-        }
-        std::cout << '\n';
+//    for (int i = 0; i < fuzz_ssid.num_mutations(); ++i) {
+//        auto mutated = fuzz_ssid.get_mutated();
+//        for (unsigned char j : mutated) {
+//            std::cout << j;
+//        }
+//        std::cout << '\n';
+//    }
+
+    RandProvider rand_provider(421);
+
+    auto tags = std::vector<std::string> {"1 ssid", "2 rates", "3 extended rates", "4 vendor specific", "5 HT info"};
+
+
+    unsigned counter = 0;
+
+    // only one
+    for (auto &i: tags) {
+        std::cout << i << '\n';
+        ++counter;
     }
+
+    std::cout << "++++++++++++++++++++++++++++++++++++" << '\n';
+
+    // all once shift for #size times
+    for (int i=0; i<tags.size(); ++i) {
+        std::rotate(tags.begin(), tags.begin() + 1, tags.end());
+        ++counter;
+
+        for (auto &t: tags) {
+            std::cout << t << '\n';
+        }
+
+        std::cout << "============================" << '\n';
+    }
+
+    std::cout << "++++++++++++++++++++++++++++++++++++" << '\n';
+
+    std::vector<std::string> myvector{tags};
+
+    // rand shuffle for #size
+    for (int i = 0; i<tags.size(); ++i) {
+        std::shuffle(myvector.begin(), myvector.end(), rand_provider.generator);
+        ++counter;
+
+        for (auto &t: myvector) {
+            std::cout << t << '\n';
+        }
+
+        std::cout << "============================" << '\n';
+    }
+
+    std::cout << "++++++++++++++++++++++++++++++++++++" << '\n';
+
+    // double for all
+    for (auto &t: tags) {
+        auto tags_copy = std::vector<std::string>{tags};
+        tags_copy.push_back(t);
+
+        for (auto &t: tags_copy) {
+            std::cout << t << '\n';
+        }
+
+        ++counter;
+
+        std::cout << "============================" << '\n';
+    }
+//    for (int i = 0; i<tags.size(); ++i) {
+//        ++counter;
+//
+//        std::vector<std::string> tmp{};
+//        for (auto &t: tags) {
+//            tmp.push_back(t);
+//            if (tags[i] == t) {
+//                tmp.push_back(t);
+//            }
+//        }
+//
+//        for (auto &t: tmp) {
+//            std::cout << t << '\n';
+//        }
+//
+//        std::cout << "============================" << '\n';
+//    }
+
+
+
+//    // two
+//    for (auto &i: tags) {
+//        for (auto &j: tags) {
+//            std::cout << i << ", " << j << '\n';
+//            ++counter;
+//        }
+//    }
+//
+//    // three
+//    for (auto &i: tags) {
+//        for (auto &j: tags) {
+//            for (auto &k: tags) {
+//                std::cout << i << ", " << j << ", " << k << '\n';
+//                ++counter;
+//            }
+//        }
+//    }
+//
+//    // four
+//    for (auto &i: tags) {
+//        for (auto &j: tags) {
+//            for (auto &k: tags) {
+//                for (auto &l: tags) {
+//                    std::cout << i << ", " << j << ", " << k << ", " << l << '\n';
+//                    ++counter;
+//                }
+//            }
+//        }
+//    }
+//
+//    // five
+//    for (auto &i: tags) {
+//        for (auto &j: tags) {
+//            for (auto &k: tags) {
+//                for (auto &l: tags) {
+//                    for (auto &m: tags) {
+//                        std::cout << i << ", " << j << ", " << k << ", " << l << ", " << m <<'\n';
+//                        ++counter;
+//                    }
+//                }
+//            }
+//        }
+//    }
+//
+    std::cout << "counter: " << counter << '\n';
+
+
+//    auto fuzz_general = FuzzableGeneralCapability{5, 420};
+//
+//    for (int i = 0; i < fuzz_general.num_mutations(); ++i) {
+//        auto mutated = fuzz_general.get_mutated();
+//        for (unsigned char j : mutated) {
+//            std::cout << j;
+//        }
+//        std::cout << '\n';
+//    }
 
 }
