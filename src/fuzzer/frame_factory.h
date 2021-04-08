@@ -18,6 +18,10 @@ struct SSIDFuzzer {
         curr_gen_len = 0;
     }
 
+    unsigned num_mutations() {
+        return 10; // TODO
+    }
+
     std::vector<std::uint8_t> next();
 
 private:
@@ -37,12 +41,20 @@ struct PrbRespFrameFuzzer {
 
     std::vector<std::uint8_t> fuzz_prb_req_content();
 
+    std::vector<std::uint8_t> fuzz_ssid(
+        std::vector<std::uint8_t> &timestamp,
+        std::vector<std::uint8_t> &beacon_interval,
+        std::vector<std::uint8_t> &capability
+        );
+
 private:
     SSIDFuzzer fuzzer_ssid;
 
     RandProvider rand_provider;
 
     std::uint8_t source_mac[6]{};
+
+    unsigned fuzzed_ssids = 0;
 };
 
 struct BeaconFrameFuzzer {
