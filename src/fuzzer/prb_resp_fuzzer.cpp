@@ -16,11 +16,7 @@ rand_provider(rand_seed)
 /*
  * Fill valid info and fuzz SSID as last element.
  */
-std::vector<std::uint8_t> PrbRespFrameFuzzer::fuzz_ssid(
-    std::vector<std::uint8_t> &timestamp,
-    std::vector<std::uint8_t> &beacon_interval,
-    std::vector<std::uint8_t> &capability
-) {
+std::vector<std::uint8_t> PrbRespFrameFuzzer::fuzz_ssid() {
     // add valid supported rates
     std::vector<std::uint8_t> supp_rates {
         0x01,   // supported rates tag
@@ -66,7 +62,7 @@ std::vector<std::uint8_t> PrbRespFrameFuzzer::fuzz_prb_req_content() {
 
     std::vector<std::uint8_t> tagged_params;
     if (fuzzed_ssids < fuzzer_ssid.num_mutations()) {
-        tagged_params = fuzz_ssid(timestamp, beacon_interval, capability);
+        tagged_params = fuzz_ssid();
 
         ++fuzzed_ssids;
     } else {

@@ -42,11 +42,7 @@ struct PrbRespFrameFuzzer {
 
     std::vector<std::uint8_t> fuzz_prb_req_content();
 
-    std::vector<std::uint8_t> fuzz_ssid(
-        std::vector<std::uint8_t> &timestamp,
-        std::vector<std::uint8_t> &beacon_interval,
-        std::vector<std::uint8_t> &capability
-        );
+    std::vector<std::uint8_t> fuzz_ssid();
 
 private:
     FuzzableSSID fuzzer_ssid{};
