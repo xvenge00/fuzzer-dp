@@ -28,7 +28,7 @@ std::vector<std::uint8_t> PrbRespFrameFuzzer::fuzz_ssid() {
     std::vector<std::uint8_t> ds_param {
         0x03,   // DS tag
         0x01,   // len
-        0x02    // channel 2
+        0x02    // channel 2    // TODO get chanel
     };
 
     // add fuzzed ssid
@@ -36,6 +36,28 @@ std::vector<std::uint8_t> PrbRespFrameFuzzer::fuzz_ssid() {
     std::vector<std::uint8_t> ssid = fuzzer_ssid.get_mutated();
 
     return combine_vec({supp_rates, ds_param, ssid_tag, ssid});
+}
+
+std::vector<std::uint8_t> PrbRespFrameFuzzer::fuzz_supported_rates() {
+    // add valid ssid
+    std::vector<std::uint8_t> ssid {
+        0x00,   // ssid tag
+        0x07,   // len(FUZZING)
+        0x46, 0x55, 0x5a, 0x5a, 0x49, 0x4e, 0x47
+    };
+
+    // add valid DS param
+    std::vector<std::uint8_t> ds_param {
+        0x03,   // DS tag
+        0x01,   // len
+        0x02    // channel 2
+    };
+
+    // add fuzzed supported rates
+    std::vector<std::uint8_t> supp_rates_tag{0x01};
+    std::vector<std::uint8_t> supp_rates = fuzzer_supported_rates.get_mutated();
+
+    return combine_vec({ssid, ds_param, supp_rates_tag, supp_rates});
 }
 
 std::vector<std::uint8_t> PrbRespFrameFuzzer::fuzz_prb_req_content() {
@@ -65,6 +87,10 @@ std::vector<std::uint8_t> PrbRespFrameFuzzer::fuzz_prb_req_content() {
         tagged_params = fuzz_ssid();
 
         ++fuzzed_ssids;
+    } else if (fuzzed_supp_rates < fuzzer_supported_rates.num_mutations()) {
+        tagged_params = fuzz_supported_rates();
+
+        ++fuzzed_supp_rates;
     } else {
         throw std::runtime_error("fuzzing pool exhausted");
     }
