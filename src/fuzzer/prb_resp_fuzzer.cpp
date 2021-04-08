@@ -8,7 +8,6 @@
 #include "utils/hash.h"
 
 PrbRespFrameFuzzer::PrbRespFrameFuzzer(const std::uint8_t *src_mac, unsigned rand_seed):
-fuzzer_ssid(rand_seed),
 rand_provider(rand_seed)
 {
     memcpy(source_mac, src_mac, 6);
@@ -38,7 +37,7 @@ std::vector<std::uint8_t> PrbRespFrameFuzzer::fuzz_ssid(
 
     // add fuzzed ssid
     std::vector<std::uint8_t> ssid_tag{0x00};
-    std::vector<std::uint8_t> ssid = fuzzer_ssid.next();
+    std::vector<std::uint8_t> ssid = fuzzer_ssid.get_mutated();
 
     return combine_vec({supp_rates, ds_param, ssid_tag, ssid});
 }
@@ -73,52 +72,6 @@ std::vector<std::uint8_t> PrbRespFrameFuzzer::fuzz_prb_req_content() {
     } else {
         throw std::runtime_error("fuzzing pool exhausted");
     }
-
-//    std::vector<std::uint8_t> ssid_tag{0x00};
-//    std::vector<std::uint8_t> ssid;
-//    ssid = fuzzer_ssid.next();
-//
-//    std::vector<std::uint8_t> supp_rates{
-//        0x01, // Supported Rates
-//        0x04, // tag length
-//        0x02, 0x04, 0x0b, 0x16, // rates
-//    };
-//
-//    std::vector<std::uint8_t> ds_params{
-//        0x03, // DS parameters (channel)
-//        0x01, // length
-//        0x01,
-//    };
-//
-//    std::vector<std::uint8_t> extended_rates{
-////        0x32, // extended supported rates
-////        0x08, // len
-////        0x0c, 0x12, 0x18, 0x24, 0x30, 0x48, 0x60, 0x6c
-//    };
-//
-
-
-//    std::vector<std::uint8_t> content {
-//        0xa6, 0xee, 0x41, 0x98, 0xf8, 0xb1, 0x05, 0x00, // timestamp for number of microseconds the device is active
-//        0x64, 0x00, // beacon interval, one unit is 1,024 microseconds
-//        0x01, 0x04, // capability info TODO, strana 80
-//
-//        0x00, // tag number
-//        0x04, // ssid name length
-//        0x46, 0x61, 0x6b, 0x65, // ssid
-//
-//        0x01, // Supported Rates
-//        0x04, // tag length
-//        0x02, 0x04, 0x0b, 0x16, // rates
-//
-//        0x03, // DS parameters (channel)
-//        0x01, // length
-//        0x01,
-//
-//        0x32, // extended supported rates
-//        0x08, // len
-//        0x0c, 0x12, 0x18, 0x24, 0x30, 0x48, 0x60, 0x6c
-//    };
 
     return combine_vec({timestamp, beacon_interval, capability, tagged_params});
 }

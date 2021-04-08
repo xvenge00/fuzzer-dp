@@ -4,6 +4,7 @@
 #include <cinttypes>
 #include <vector>
 #include "utils/rand_provider.h"
+#include "ssid.h"
 
 std::vector<std::uint8_t> get_base_rt();
 //
@@ -48,7 +49,7 @@ struct PrbRespFrameFuzzer {
         );
 
 private:
-    SSIDFuzzer fuzzer_ssid;
+    FuzzableSSID fuzzer_ssid{};
 
     RandProvider rand_provider;
 
