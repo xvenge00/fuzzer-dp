@@ -7,14 +7,15 @@
 #include <array>
 #include <stdexcept>
 #include "utils/vector_appender.h"
+#include "fuzzer/fuzzable.h"
 
-struct DSParamsFuzzer {   // TODO common interface
-    virtual size_t num_mutations() {
+struct DSParamsFuzzer: public Fuzzable {
+    size_t num_mutations() override {
         return fuzzing_lengths.size() + invalid_channels.size();
     }
 
 
-    virtual std::vector<std::uint8_t> get_mutated() {
+    std::vector<std::uint8_t> get_mutated() override {
         std::vector<std::uint8_t> res;
 
         // fuzzing invalid lengths

@@ -5,14 +5,15 @@
 #include <cinttypes>
 #include <array>
 #include "utils/vector_appender.h"
+#include "fuzzer/fuzzable.h"
 
-struct SupportedRatesFuzzer {   // TODO common interface
-    virtual size_t num_mutations() {
+struct SupportedRatesFuzzer: public Fuzzable {
+    size_t num_mutations() override {
         return 1 + rates_len.size() + 1;
     }
 
 
-    virtual std::vector<std::uint8_t> get_mutated() {
+    std::vector<std::uint8_t> get_mutated() override {
         std::vector<std::uint8_t> res;
 
         if (!fuzzed_invalid_rates) {    // fuzz invalid rates

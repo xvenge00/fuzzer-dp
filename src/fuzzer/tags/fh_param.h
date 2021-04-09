@@ -6,9 +6,10 @@
 #include <array>
 #include <stdexcept>
 #include "utils/vector_appender.h"
+#include "fuzzer/fuzzable.h"
 
-struct FHParamsFuzzer {   // TODO common interface
-    virtual size_t num_mutations() {
+struct FHParamsFuzzer: public Fuzzable {
+    size_t num_mutations() override {
         return fuzzing_lengths.size() + fuzzing_claimed_lengths.size() + fuzzing_real_lengths.size();
     }
 
@@ -19,7 +20,7 @@ struct FHParamsFuzzer {   // TODO common interface
      * Hop Pattern
      * Hop Index
      */
-    virtual std::vector<std::uint8_t> get_mutated() {
+    std::vector<std::uint8_t> get_mutated() override {
         std::vector<std::uint8_t> res;
 
         // trying invalid lengths

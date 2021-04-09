@@ -6,17 +6,7 @@
 #include <array>
 #include <string>
 #include "utils/vector_appender.h"
-
-struct Fuzzable {
-    bool is_mutable = true;
-
-    virtual std::vector<uint8_t> get_mutated() = 0;
-
-    virtual size_t num_mutations() = 0;
-
-    virtual ~Fuzzable() = default;
-};
-
+#include "fuzzer/fuzzable.h"
 
 using namespace std::literals::string_literals;
 
