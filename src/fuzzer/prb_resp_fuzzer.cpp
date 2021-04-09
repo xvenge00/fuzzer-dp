@@ -81,6 +81,28 @@ std::vector<std::uint8_t> PrbRespFrameFuzzer::fuzz_ds_params() {
     return combine_vec({ssid, supp_rates, ds_params_tag, ds_params});
 }
 
+std::vector<std::uint8_t> PrbRespFrameFuzzer::fuzz_fh_params() {
+    // add valid ssid
+    std::vector<std::uint8_t> ssid {
+        0x00,   // ssid tag
+        0x07,   // len(FUZZING)
+        0x46, 0x55, 0x5a, 0x5a, 0x49, 0x4e, 0x47
+    };
+
+    // add supported rates
+    std::vector<std::uint8_t> supp_rates {
+        0x01,   // supported rates tag
+        0x08,   // len
+        0x82, 0x84, 0x8b, 0x96, 0x24, 0x30, 0x48, 0x6c
+    };
+
+    // add fuzzed supported rates
+    std::vector<std::uint8_t> fh_params_tag{0x02};
+    std::vector<std::uint8_t> fh_params = fuzzer_fh_params.get_mutated();
+
+    return combine_vec({ssid, supp_rates, fh_params_tag, fh_params});
+}
+
 std::vector<std::uint8_t> PrbRespFrameFuzzer::fuzz_prb_req_content() {
     /*
      * Management Frame Information Elements
@@ -116,6 +138,10 @@ std::vector<std::uint8_t> PrbRespFrameFuzzer::fuzz_prb_req_content() {
         tagged_params = fuzz_ds_params();
 
         ++fuzzed_ds_params;
+    } else if (fuzzed_fh_params < fuzzer_fh_params.num_mutations()) {
+        tagged_params = fuzz_fh_params();
+
+        ++fuzzed_fh_params;
     } else {
         throw std::runtime_error("fuzzing pool exhausted");
     }
