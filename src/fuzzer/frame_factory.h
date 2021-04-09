@@ -7,6 +7,7 @@
 #include "ssid.h"
 #include "supported_rates.h"
 #include "ds_params.h"
+#include "fh_param.h"
 
 std::vector<std::uint8_t> get_base_rt();
 //
@@ -50,12 +51,16 @@ struct PrbRespFrameFuzzer {
 
     std::vector<std::uint8_t> fuzz_ds_params();
 
+    std::vector<std::uint8_t> fuzz_fh_params();
+
 private:
     FuzzableSSID fuzzer_ssid{};
 
     SupportedRatesFuzzer fuzzer_supported_rates{};
 
     DSParamsFuzzer fuzzer_ds_params{};
+
+    FHParamsFuzzer fuzzer_fh_params{};
 
     RandProvider rand_provider;
 
@@ -64,6 +69,7 @@ private:
     unsigned fuzzed_ssids = 0;
     unsigned fuzzed_supp_rates = 0;
     unsigned fuzzed_ds_params = 0;
+    unsigned fuzzed_fh_params = 0;
 };
 
 struct BeaconFrameFuzzer {
