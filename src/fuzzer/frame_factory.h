@@ -3,6 +3,7 @@
 
 #include <cinttypes>
 #include <vector>
+#include <fuzzer/tags/tim.h>
 #include "utils/rand_provider.h"
 #include "fuzzer/tags/ssid.h"
 #include "fuzzer/tags/supported_rates.h"
@@ -53,6 +54,8 @@ struct PrbRespFrameFuzzer {
 
     std::vector<std::uint8_t> fuzz_fh_params();
 
+    std::vector<std::uint8_t> fuzz_tim();
+
 private:
     FuzzableSSID fuzzer_ssid{};
 
@@ -62,6 +65,8 @@ private:
 
     FHParamsFuzzer fuzzer_fh_params{};
 
+    TIMFuzzer fuzzer_tim{};
+
     RandProvider rand_provider;
 
     std::uint8_t source_mac[6]{};
@@ -70,6 +75,7 @@ private:
     unsigned fuzzed_supp_rates = 0;
     unsigned fuzzed_ds_params = 0;
     unsigned fuzzed_fh_params = 0;
+    unsigned fuzzed_tims = 0;
 };
 
 struct BeaconFrameFuzzer {
