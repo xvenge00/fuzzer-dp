@@ -4,6 +4,7 @@
 #include <vector>
 #include <cinttypes>
 #include <array>
+#include <string>
 #include "utils/vector_appender.h"
 
 struct Fuzzable {

@@ -4,10 +4,10 @@
 #include <cinttypes>
 #include <vector>
 #include "utils/rand_provider.h"
-#include "ssid.h"
-#include "supported_rates.h"
-#include "ds_params.h"
-#include "fh_param.h"
+#include "fuzzer/tags/ssid.h"
+#include "fuzzer/tags/supported_rates.h"
+#include "fuzzer/tags/ds_params.h"
+#include "fuzzer/tags/fh_param.h"
 
 std::vector<std::uint8_t> get_base_rt();
 //
