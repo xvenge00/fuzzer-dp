@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <iostream>
 #include "utils/vector_appender.h"
-#include "ssid.h"
+#include "fuzzer/tags/ssid.h"
 #include "rand.h"
 
 
