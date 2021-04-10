@@ -5,6 +5,7 @@
 #include <vector>
 #include <fuzzer/tags/tim.h>
 #include <fuzzer/tags/cf_param.h>
+#include <fuzzer/tags/generic_tag.h>
 #include "utils/rand_provider.h"
 #include "fuzzer/tags/ssid.h"
 #include "fuzzer/tags/supported_rates.h"
@@ -59,6 +60,10 @@ struct PrbRespFrameFuzzer {
 
     std::vector<std::uint8_t> fuzz_cf_params();
 
+    std::vector<std::uint8_t> fuzz_erp();
+
+    std::vector<std::uint8_t> fuzz_generic(std::uint8_t tag, Fuzzable &fuzzer);
+
 private:
     FuzzableSSID fuzzer_ssid{};
 
@@ -72,6 +77,8 @@ private:
 
     CFParamsFuzzer fuzzer_cf_params{};
 
+    GenericTagFuzzer fuzzer_erp{};
+
     RandProvider rand_provider;
 
     std::uint8_t source_mac[6]{};
@@ -82,6 +89,7 @@ private:
     unsigned fuzzed_fh_params = 0;
     unsigned fuzzed_tims = 0;
     unsigned fuzzed_cf_params = 0;
+    unsigned fuzzed_erp_params = 0;
 };
 
 struct BeaconFrameFuzzer {
