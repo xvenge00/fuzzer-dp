@@ -4,12 +4,14 @@
 #include <spdlog/spdlog.h>
 #include <thread>
 #include <monitor/monitor.h>
+#include <fuzzer/probe_response.h>
 #include "fuzzer/frame_factory.h"
 #include "logging/guarded_circular_buffer.h"
 #include "fuzzer.h"
 #include "net80211.h"
 #include "utils/debug.h"
 #include "config/config.h"
+#include "fuzzer/response_fuzzer.h"
 
 std::size_t get_radiotap_size(const std::uint8_t *data, std::size_t len) {
     if (len > 4) {
@@ -35,21 +37,21 @@ int8_t get_frame_type(const std::uint8_t *packet, size_t packet_size) {
     return *packet;
 }
 
-
-void fuzz_prb_resp(pcap *handle,
-                   const std::uint8_t *src_mac,
-                   const std::uint8_t *fuzz_device_mac,
-                   GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames,
-                   unsigned rand_seed)
-{
-    spdlog::info("fuzzing probe response");
-
+[[noreturn]] void fuzz_response(
+    pcap *handle,
+    ResponseFuzzer &fuzzer,
+    const std::array<std::uint8_t, 6> &fuzzed_device_mac,
+    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames,
+    void (* setup) (pcap *),
+    void (* teardown) (pcap *)
+) {
     struct pcap_pkthdr header{};
-    auto fuzzer = PrbRespFrameFuzzer{src_mac, rand_seed};
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "EndlessLoop"
     while(true) {
+        if (setup != nullptr) {
+            setup(handle);
+        }
+
         const u_char *packet = pcap_next(handle, &header);
 
         size_t rt_size = get_radiotap_size(packet, header.caplen);
@@ -57,12 +59,12 @@ void fuzz_prb_resp(pcap *handle,
         const std::size_t ieee802_11_size = header.caplen - rt_size;
 
         try{
-            if (get_frame_type(ieee802_11_data, ieee802_11_size) == IEEE80211_FC0_SUBTYPE_PROBE_REQ) {
+            if (get_frame_type(ieee802_11_data, ieee802_11_size) == fuzzer.responds_to_subtype) {
                 auto *mac = get_prb_req_mac(ieee802_11_data, ieee802_11_size);
 
-                if (strncmp((const char *)mac, (const char*) fuzz_device_mac, 6) == 0) {
+                if (strncmp((const char *)mac, (const char*) fuzzed_device_mac.data(), 6) == 0) {
                     print_mac(mac);
-                    auto frame = fuzzer.get_prb_resp(mac);
+                    auto frame = fuzzer.get_mutated();
                     pcap_sendpacket(handle, frame.data(), frame.size());
 
                     sent_frames.push_back(frame);
@@ -72,8 +74,26 @@ void fuzz_prb_resp(pcap *handle,
             spdlog::warn("Caught exception.");
         }
 
+        if (teardown != nullptr) {
+            teardown(handle);
+        }
     }
-#pragma clang diagnostic pop
+}
+
+[[noreturn]] void fuzz_prb_resp(pcap *handle,
+                   const std::array<std::uint8_t, 6> &src_mac,
+                   const std::array<std::uint8_t, 6> &fuzz_device_mac,
+                   GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames
+) {
+    spdlog::info("fuzzing probe response");
+    ProbeResponseFuzzer fuzzer{src_mac, fuzz_device_mac};
+    fuzz_response(
+        handle,
+        fuzzer,
+        fuzz_device_mac,
+        sent_frames,
+        nullptr,
+        nullptr);
 }
 
 [[noreturn]] void fuzz_beacon(
@@ -164,7 +184,7 @@ int fuzz(Config config) {
 
     switch (config.fuzzer_type) {
     case PRB_REQ:
-        fuzz_prb_resp(handle, config.src_mac.data(), config.test_device_mac.data(), sent_frames, config.random_seed);
+        fuzz_prb_resp(handle, config.src_mac, config.test_device_mac, sent_frames);
     case BEACON:
         fuzz_beacon(handle, config.src_mac.data(), sent_frames, config.random_seed);
     case DEAUTH:
