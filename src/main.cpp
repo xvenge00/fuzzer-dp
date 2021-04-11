@@ -1,7 +1,7 @@
 #include <iostream>
 #include <utils/debug.h>
 #include "config/config.h"
-#include "fuzzer.h"
+#include "fuzzer_control.h"
 #include "config/config_loader.h"
 
 int main(int argc, char **argv)

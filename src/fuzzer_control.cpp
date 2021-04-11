@@ -7,7 +7,7 @@
 #include <fuzzer/probe_response.h>
 #include "fuzzer/frame_factory.h"
 #include "logging/guarded_circular_buffer.h"
-#include "fuzzer.h"
+#include "fuzzer_control.h"
 #include "net80211.h"
 #include "utils/debug.h"
 #include "config/config.h"
@@ -15,30 +15,7 @@
 #include "fuzzer/beacon_fuzzer.h"
 #include "fuzzer/disass_fuzzer.h"
 #include "fuzzer/deauth_fuzzer.h"
-
-std::size_t get_radiotap_size(const std::uint8_t *data, std::size_t len) {
-    if (len > 4) {
-        return (((uint16_t)*(data+3)) << 4) | *(data+2);    // little endian to big endian
-    }
-
-    return 0;
-}
-
-const std::uint8_t *get_prb_req_mac(const std::uint8_t *data, std::size_t len) {
-    if (len < 16) {
-        throw std::runtime_error("frame too small to extract req mac");
-    }
-
-    return data + 10;
-}
-
-int8_t get_frame_type(const std::uint8_t *packet, size_t packet_size) {
-    if (packet_size < 2) {
-        throw std::runtime_error("too small ieee802 frame");
-    }
-
-    return *packet;
-}
+#include "utils/frame.h"
 
 [[noreturn]] void fuzz_response(
     pcap *handle,
@@ -92,7 +69,7 @@ int8_t get_frame_type(const std::uint8_t *packet, size_t packet_size) {
 [[noreturn]] void fuzz_push(
     pcap *handle,
     Fuzzer &fuzzer,
-    const std::chrono::milliseconds wait_duration,
+    const std::chrono::milliseconds &wait_duration,
     unsigned packets_resend_count,
     GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames,
     void (* setup) (pcap *),
@@ -126,10 +103,11 @@ int8_t get_frame_type(const std::uint8_t *packet, size_t packet_size) {
     }
 }
 
-[[noreturn]] void fuzz_prb_resp(pcap *handle,
-                   const std::array<std::uint8_t, 6> &src_mac,
-                   const std::array<std::uint8_t, 6> &fuzz_device_mac,
-                   GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames
+[[noreturn]] void fuzz_prb_resp(
+    pcap *handle,
+    const std::array<std::uint8_t, 6> &src_mac,
+    const std::array<std::uint8_t, 6> &fuzz_device_mac,
+    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames
 ) {
     spdlog::info("fuzzing probe response");
     ProbeResponseFuzzer fuzzer{src_mac, fuzz_device_mac};
@@ -146,7 +124,7 @@ int8_t get_frame_type(const std::uint8_t *packet, size_t packet_size) {
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
     GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames,
-    const std::chrono::milliseconds wait_duration,
+    const std::chrono::milliseconds &wait_duration,
     unsigned packets_resend_count
 ) {
     spdlog::info("fuzzing beacon");
@@ -168,7 +146,7 @@ int8_t get_frame_type(const std::uint8_t *packet, size_t packet_size) {
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzzed_device_mac,
     GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames,
-    const std::chrono::milliseconds wait_duration,
+    const std::chrono::milliseconds &wait_duration,
     unsigned packets_resend_count
 ) {
     spdlog::info("fuzzing disass");
@@ -189,7 +167,7 @@ int8_t get_frame_type(const std::uint8_t *packet, size_t packet_size) {
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzzed_device_mac,
     GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames,
-    const std::chrono::milliseconds wait_duration,
+    const std::chrono::milliseconds &wait_duration,
     unsigned packets_resend_count
 ) {
     spdlog::info("fuzzing deauth");
