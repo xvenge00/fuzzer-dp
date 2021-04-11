@@ -16,8 +16,6 @@ struct SSIDFuzzer: public Fuzzable {
     }
 
     generator<fuzz_t> get_mutated() override{
-        std::vector<uint8_t> res {};
-
         for (auto len: fuzz_lengths) {
             auto ssid_len = std::vector<uint8_t>{len};
             auto ssid = get_printable(len);
@@ -26,7 +24,6 @@ struct SSIDFuzzer: public Fuzzable {
         }
 
         for (auto &str: fuzz_dict) {
-            res.reserve(str.length() + 1);
             auto ssid_len = std::vector<uint8_t>{(uint8_t) str.length()};
             auto ssid = std::vector<uint8_t>{str.begin(), str.end()};
 
