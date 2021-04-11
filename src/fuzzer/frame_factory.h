@@ -18,17 +18,17 @@ std::vector<std::uint8_t> get_base_rt();
 //std::vector<std::uint8_t> rand_vec(size_t len);
 
 
-struct DeauthentiactionFuzzer {
-    explicit DeauthentiactionFuzzer(const std::uint8_t *src_mac,
-                                    const std::uint8_t *dst_mac,
-                                    unsigned int rand_seed);
-    std::vector<std::uint8_t> next();
-
-private:
-    RandProvider rand_provider;
-
-    std::uint8_t src_mac[6]{};
-    std::uint8_t dst_mac[6]{};
-};
+//struct DeauthentiactionFuzzer {
+//    explicit DeauthentiactionFuzzer(const std::uint8_t *src_mac,
+//                                    const std::uint8_t *dst_mac,
+//                                    unsigned int rand_seed);
+//    std::vector<std::uint8_t> next();
+//
+//private:
+//    RandProvider rand_provider;
+//
+//    std::uint8_t src_mac[6]{};
+//    std::uint8_t dst_mac[6]{};
+//};
 
 #endif //CPP_FRAME_FACTORY_H

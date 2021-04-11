@@ -14,6 +14,7 @@
 #include "fuzzer/response_fuzzer.h"
 #include "fuzzer/beacon_fuzzer.h"
 #include "fuzzer/disass_fuzzer.h"
+#include "fuzzer/deauth_fuzzer.h"
 
 std::size_t get_radiotap_size(const std::uint8_t *data, std::size_t len) {
     if (len > 4) {
@@ -185,26 +186,23 @@ int8_t get_frame_type(const std::uint8_t *packet, size_t packet_size) {
 
 [[noreturn]] void fuzz_deauth(
     pcap *handle,
-    const std::uint8_t *src_mac,
-    const std::uint8_t *dst_mac,
+    const std::array<std::uint8_t, 6> &src_mac,
+    const std::array<std::uint8_t, 6> &fuzzed_device_mac,
     GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames,
-    unsigned rand_seed
+    const std::chrono::milliseconds wait_duration,
+    unsigned packets_resend_count
 ) {
-    spdlog::info("fuzzing disauth");
-
-    auto fuzzer = DeauthentiactionFuzzer{src_mac, dst_mac, rand_seed};
-
-    while (true) {
-        auto frame = fuzzer.next();
-        pcap_sendpacket(handle, frame.data(), frame.size());
-
-        // uvidime ci to je treba
-        for (int i=0; i<5; ++i) {
-            sent_frames.push_back(frame);
-        }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
+    spdlog::info("fuzzing deauth");
+    auto fuzzer = DeauthentiactionFuzzer{src_mac, fuzzed_device_mac};
+    fuzz_push(
+        handle,
+        fuzzer,
+        wait_duration,
+        packets_resend_count,
+        sent_frames,
+        nullptr,
+        nullptr
+    );
 }
 
 int fuzz(Config config) {
@@ -227,7 +225,7 @@ int fuzz(Config config) {
     case BEACON:
         fuzz_beacon(handle, config.src_mac, sent_frames, std::chrono::milliseconds{10}, 5); // TODO pass from config
     case DEAUTH:
-        fuzz_deauth(handle, config.src_mac.data(), config.test_device_mac.data(), sent_frames, config.random_seed);
+        fuzz_deauth(handle, config.src_mac, config.test_device_mac, sent_frames, std::chrono::milliseconds{100}, 5);
     case DISASS:
         fuzz_disass(handle, config.src_mac, config.test_device_mac, sent_frames, std::chrono::milliseconds{100}, 5);
     }
