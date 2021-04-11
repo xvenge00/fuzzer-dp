@@ -1,5 +1,5 @@
-#ifndef CPP_FUZZER_H
-#define CPP_FUZZER_H
+#ifndef CPP_FUZZER_FUZZER_H
+#define CPP_FUZZER_FUZZER_H
 
 #include <array>
 #include "fuzzable.h"
@@ -12,4 +12,4 @@ struct Fuzzer: public Fuzzable {
     const std::array<std::uint8_t, 6> source_mac;
 };
 
-#endif //CPP_FUZZER_H
+#endif //CPP_FUZZER_FUZZER_H
