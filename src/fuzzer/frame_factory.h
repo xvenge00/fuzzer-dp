@@ -17,19 +17,6 @@ std::vector<std::uint8_t> get_base_rt();
 //std::uint8_t rand_byte();
 //std::vector<std::uint8_t> rand_vec(size_t len);
 
-struct BeaconFrameFuzzer {
-    explicit BeaconFrameFuzzer(const std::uint8_t *src_mac, unsigned int rand_seed);
-    std::vector<std::uint8_t> next();
-
-private:
-    std::vector<std::uint8_t> fuzz_content();
-
-//    SSIDFuzzer ssid_fuzzer;
-
-    RandProvider rand_provider;
-
-    std::uint8_t source_mac[6];
-};
 
 struct DisassociationFuzzer {
     explicit DisassociationFuzzer(const std::uint8_t *src_mac_,

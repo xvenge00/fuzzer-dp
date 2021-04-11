@@ -3,15 +3,15 @@
 #include "utils/vector_appender.h"
 #include "net80211.h"
 #include "utils/hash.h"
+#include "beacon_fuzzer.h"
 
-BeaconFrameFuzzer::BeaconFrameFuzzer(const std::uint8_t *src_mac, unsigned int rand_seed):
-//ssid_fuzzer(rand_seed),
-rand_provider(rand_seed)
+BeaconFrameFuzzer::BeaconFrameFuzzer(
+    mac_t src_mac,
+    mac_t fuzzed_device_mac
+): Fuzzer(src_mac, fuzzed_device_mac) {}
+
+generator<fuzz_t> BeaconFrameFuzzer::fuzz_content()
 {
-    memcpy(source_mac, src_mac, 6);
-}
-
-std::vector<std::uint8_t> BeaconFrameFuzzer::fuzz_content() {
     /*
      * Management Frame Information Elements
      *
@@ -32,65 +32,36 @@ std::vector<std::uint8_t> BeaconFrameFuzzer::fuzz_content() {
     std::vector<std::uint8_t> beacon_interval{0x64, 0x00};
     std::vector<std::uint8_t> capability{0x01, 0x04};
 
-    std::vector<std::uint8_t> ssid_tag{0x00};
-    std::vector<std::uint8_t> ssid{};   // TODO
-//    try {
-//    ssid = ssid_fuzzer.next();
-//    } catch (FuzzException &e) {
-//        fuzzer_ssid.init();
-//        ssid = fuzzer_ssid.next();
-//    }
-//    std::vector<std::uint8_t> ssid_len{255};
-//    std::vector<std::uint8_t> ssid = rand_vec(ssid_len[0]);
-//    std::vector<std::uint8_t> ssid_len{rand_byte()};
-//    std::vector<std::uint8_t> ssid = rand_vec(ssid_len[0]);
+    for (auto &fuzzed_ssid: fuzzer_ssid.get_whole_param_set()) {
+        co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_ssid});
+    }
 
-    std::vector<std::uint8_t> supp_rates{
-        0x01, // Supported Rates
-        0x04, // tag length
-        0x02, 0x04, 0x0b, 0x16, // rates
-    };
+    for (auto &fuzzed_supp_rate: fuzzer_supported_rates.get_whole_param_set()) {
+        co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_supp_rate});
+    }
 
-    std::vector<std::uint8_t> ds_params{
-        0x03, // DS parameters (channel)
-        0x01, // length
-        0x01,
-    };
+    for (auto &fuzzed_ds_param: fuzzer_ds_params.get_whole_param_set()) {
+        co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_ds_param});
+    }
 
-    std::vector<std::uint8_t> extended_rates{
-//        0x32, // extended supported rates
-//        0x08, // len
-//        0x0c, 0x12, 0x18, 0x24, 0x30, 0x48, 0x60, 0x6c
-    };
+    for (auto &fuzzed_fh_param: fuzzer_fh_params.get_whole_param_set()) {
+        co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_fh_param});
+    }
 
+    for (auto &fuzzed_tim: fuzzer_tim.get_whole_param_set()) {
+        co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_tim});
+    }
 
+    for (auto &fuzzed_cf_param: fuzzer_cf_params.get_whole_param_set()) {
+        co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_cf_param});
+    }
 
-//    std::vector<std::uint8_t> content {
-//        0xa6, 0xee, 0x41, 0x98, 0xf8, 0xb1, 0x05, 0x00, // timestamp for number of microseconds the device is active
-//        0x64, 0x00, // beacon interval, one unit is 1,024 microseconds
-//        0x01, 0x04, // capability info TODO, strana 80
-//
-//        0x00, // tag number
-//        0x04, // ssid name length
-//        0x46, 0x61, 0x6b, 0x65, // ssid
-//
-//        0x01, // Supported Rates
-//        0x04, // tag length
-//        0x02, 0x04, 0x0b, 0x16, // rates
-//
-//        0x03, // DS parameters (channel)
-//        0x01, // length
-//        0x01,
-//
-//        0x32, // extended supported rates
-//        0x08, // len
-//        0x0c, 0x12, 0x18, 0x24, 0x30, 0x48, 0x60, 0x6c
-//    };
-
-    return combine_vec({timestamp, beacon_interval, capability, supp_rates, ds_params, ssid_tag, ssid, extended_rates});
+    for (auto &fuzzed_erp: fuzzer_erp.get_whole_param_set()) {
+        co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_erp});
+    }
 }
 
-std::vector<std::uint8_t> BeaconFrameFuzzer::next() {
+generator<fuzz_t> BeaconFrameFuzzer::get_mutated() {
     std::vector<std::uint8_t> rt = get_base_rt();
 
 //        std::vector<std::uint8_t> mac{mac_arr, mac_arr + 6};
@@ -104,10 +75,10 @@ std::vector<std::uint8_t> BeaconFrameFuzzer::next() {
     ieee802_frame.i_dur[0] = 0x3a;    // copied from wireshark
     ieee802_frame.i_dur[1] = 0x01;
 
-    uint8_t	broadcast_mac[IEEE80211_ADDR_LEN] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-    memcpy(ieee802_frame.i_addr1, broadcast_mac, 6);   // copy destination mac
-    memcpy(ieee802_frame.i_addr2, source_mac, 6);   // copy my mac
-    memcpy(ieee802_frame.i_addr3, source_mac, 6);   // copy my mac
+    mac_t broadcast_mac{0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+    memcpy(ieee802_frame.i_addr1, broadcast_mac.data(), 6);   // copy destination mac
+    memcpy(ieee802_frame.i_addr2, source_mac.data(), 6);   // copy my mac
+    memcpy(ieee802_frame.i_addr3, source_mac.data(), 6);   // copy my mac
 
     // idk why
     ieee802_frame.i_seq[0] = 0x90;
@@ -115,17 +86,22 @@ std::vector<std::uint8_t> BeaconFrameFuzzer::next() {
 
     std::vector<std::uint8_t> ieee802_frame_ {(std::uint8_t *)&ieee802_frame, (std::uint8_t *)&ieee802_frame + sizeof(struct ieee80211_frame)};
 
-    /* prb content */
-    std::vector<std::uint8_t> content = fuzz_content();
+    /* beacon content */
+    for (auto &content: fuzz_content()) {
+        auto result = combine_vec({rt, ieee802_frame_, content});
+        uint32_t crc = crc32(result.size(), result.data());
+        std::copy((uint8_t *)&crc, (uint8_t *)(&crc) + 4, std::back_inserter(result));
 
+        co_yield result;
+    }
+}
 
-    std::vector<std::uint8_t> result{};
-    // TODO generic vector combiner
-    std::copy(rt.begin(), rt.end(), std::back_inserter(result));
-    std::copy(ieee802_frame_.begin(), ieee802_frame_.end(), std::back_inserter(result));
-    std::copy(content.begin(), content.end(), std::back_inserter(result));
-
-    uint32_t crc = crc32(result.size(), result.data());
-    std::copy((uint8_t *)&crc, (uint8_t *)(&crc) + 4, std::back_inserter(result));
-    return result;
+size_t BeaconFrameFuzzer::num_mutations() {
+    return fuzzer_ssid.num_mutations() +
+        fuzzer_supported_rates.num_mutations() +
+        fuzzer_ds_params.num_mutations() +
+        fuzzer_fh_params.num_mutations() +
+        fuzzer_tim.num_mutations() +
+        fuzzer_cf_params.num_mutations() +
+        fuzzer_erp.num_mutations();
 }
