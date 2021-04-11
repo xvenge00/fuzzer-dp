@@ -30,7 +30,7 @@ struct TIMFuzzer: public Fuzzable {
             res[0] = fuzzing_claimed_lengths[i_fuzzed_claimed_lengths];     // set claimed len to fuzzed value
 
             ++i_fuzzed_claimed_lengths;
-        } if (i_dtim_periods < dtim_periods.size()) {
+        } else if (i_dtim_periods < dtim_periods.size()) {
             res = get_filled_vector_with_len(6, 0x41);
             res[3] = dtim_periods[i_dtim_periods];  // set dtim period
 
