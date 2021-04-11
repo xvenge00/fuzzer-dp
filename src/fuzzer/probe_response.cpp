@@ -5,8 +5,8 @@
 #include "frame_factory.h"
 
 ProbeResponseFuzzer::ProbeResponseFuzzer(
-    std::array<std::uint8_t, 6> source_mac,
-    std::array<std::uint8_t, 6> fuzzed_device_mac
+    mac_t source_mac,
+    mac_t fuzzed_device_mac
 ): ResponseFuzzer(IEEE80211_FC0_SUBTYPE_PROBE_REQ, source_mac, fuzzed_device_mac) {}
 
 size_t ProbeResponseFuzzer::num_mutations() {
@@ -230,7 +230,7 @@ generator<fuzz_t> ProbeResponseFuzzer::fuzz_cf_params() {
 
     // add fuzzed supported rates
     std::vector<std::uint8_t> cf_params_tag{0x04};
-    for(auto &cf_param: fuzz_cf_params()) {
+    for(auto &cf_param: fuzzer_cf_params.get_mutated()) {
         co_yield combine_vec({ssid, supp_rates, cf_params_tag, cf_param});
     }
 }
