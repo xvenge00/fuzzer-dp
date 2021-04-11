@@ -8,8 +8,11 @@
 #include "utils/vector_appender.h"
 #include "fuzzer/fuzzable.h"
 #include "fuzzer/utils/vector_generators.h"
+#include "fuzzer/tags/tagged_params.h"
 
-struct FHParamsFuzzer: public Fuzzable {
+struct FHParamsFuzzer: public Fuzzable, public TaggedParams {
+    FHParamsFuzzer(): TaggedParams(0x02, *this) {}
+
     size_t num_mutations() override {
         return fuzzing_lengths.size() + fuzzing_claimed_lengths.size() + fuzzing_real_lengths.size();
     }

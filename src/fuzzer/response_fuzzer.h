@@ -10,12 +10,11 @@ struct ResponseFuzzer: public Fuzzer {
         std::uint8_t responds_to_subtype,
         mac_t source_mac,
         mac_t fuzzed_device_mac
-    ):  Fuzzer(source_mac),
-        responds_to_subtype(responds_to_subtype),
-        fuzzed_device_mac(fuzzed_device_mac) {}
+    ):  Fuzzer(source_mac, fuzzed_device_mac),
+        responds_to_subtype(responds_to_subtype) {}
 
     const std::uint8_t responds_to_subtype;
-    const mac_t fuzzed_device_mac;
+
 };
 
 #endif //CPP_RESPONSE_FUZZER_H

@@ -72,191 +72,31 @@ generator<fuzz_t> ProbeResponseFuzzer::fuzz_prb_req_content() {
     std::vector<std::uint8_t> beacon_interval{0x64, 0x00};
     std::vector<std::uint8_t> capability{0x01, 0x04};
 
-
-    for (auto &fuzzed_ssid: fuzz_ssid()) {
+    for (auto &fuzzed_ssid: fuzzer_ssid.get_whole_param_set()) {
         co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_ssid});
     }
 
-    for (auto &fuzzed_supp_rate: fuzz_supported_rates()) {
+    for (auto &fuzzed_supp_rate: fuzzer_supported_rates.get_whole_param_set()) {
         co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_supp_rate});
     }
 
-    for (auto &fuzzed_ds_param: fuzz_ds_params()) {
+    for (auto &fuzzed_ds_param: fuzzer_ds_params.get_whole_param_set()) {
         co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_ds_param});
     }
 
-    for (auto &fuzzed_fh_param: fuzz_fh_params()) {
+    for (auto &fuzzed_fh_param: fuzzer_fh_params.get_whole_param_set()) {
         co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_fh_param});
     }
 
-    for (auto &fuzzed_tim: fuzz_tim()) {
+    for (auto &fuzzed_tim: fuzzer_tim.get_whole_param_set()) {
         co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_tim});
     }
 
-    for (auto &fuzzed_cf_param: fuzz_cf_params()) {
+    for (auto &fuzzed_cf_param: fuzzer_cf_params.get_whole_param_set()) {
         co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_cf_param});
     }
 
-    for (auto &fuzzed_erp: fuzz_erp()) {
+    for (auto &fuzzed_erp: fuzzer_erp.get_whole_param_set()) {
         co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_erp});
     }
-}
-
-generator<fuzz_t> ProbeResponseFuzzer::fuzz_ssid() {
-// add valid supported rates
-    std::vector<std::uint8_t> supp_rates {
-        0x01,   // supported rates tag
-        0x08,   // len
-        0x82, 0x84, 0x8b, 0x96, 0x24, 0x30, 0x48, 0x6c
-    };
-
-    // add valid DS param
-    std::vector<std::uint8_t> ds_param {
-        0x03,   // DS tag
-        0x01,   // len
-        0x02    // channel 2    // TODO get channel
-    };
-
-    // add fuzzed ssid
-    std::vector<std::uint8_t> ssid_tag{0x00};
-
-    for (auto &ssid: fuzzer_ssid.get_mutated()) {
-        co_yield combine_vec({supp_rates, ds_param, ssid_tag, ssid});
-    }
-}
-
-generator<fuzz_t> ProbeResponseFuzzer::fuzz_supported_rates() {
-    // add valid ssid
-    std::vector<std::uint8_t> ssid {
-        0x00,   // ssid tag
-        0x07,   // len(FUZZING)
-        0x46, 0x55, 0x5a, 0x5a, 0x49, 0x4e, 0x47
-    };
-
-    // add valid DS param
-    std::vector<std::uint8_t> ds_param {
-        0x03,   // DS tag
-        0x01,   // len
-        0x02    // channel 2
-    };
-
-    // add fuzzed supported rates
-    std::vector<std::uint8_t> supp_rates_tag{0x01};
-    for (auto &rate: fuzzer_supported_rates.get_mutated()) {
-        co_yield combine_vec({ssid, ds_param, supp_rates_tag, rate});
-    }
-}
-
-generator<fuzz_t> ProbeResponseFuzzer::fuzz_ds_params() {
-    // add valid ssid
-    std::vector<std::uint8_t> ssid {
-        0x00,   // ssid tag
-        0x07,   // len(FUZZING)
-        0x46, 0x55, 0x5a, 0x5a, 0x49, 0x4e, 0x47
-    };
-
-    // add supported rates
-    std::vector<std::uint8_t> supp_rates {
-        0x01,   // supported rates tag
-        0x08,   // len
-        0x82, 0x84, 0x8b, 0x96, 0x24, 0x30, 0x48, 0x6c
-    };
-
-    // add fuzzed supported rates
-    std::vector<std::uint8_t> ds_params_tag{0x03};
-    for (auto &ds_param: fuzzer_ds_params.get_mutated()) {
-        co_yield combine_vec({ssid, supp_rates, ds_params_tag, ds_param});
-    }
-}
-
-generator<fuzz_t> ProbeResponseFuzzer::fuzz_fh_params() {
-    // add valid ssid
-    std::vector<std::uint8_t> ssid {
-        0x00,   // ssid tag
-        0x07,   // len(FUZZING)
-        0x46, 0x55, 0x5a, 0x5a, 0x49, 0x4e, 0x47
-    };
-
-    // add supported rates
-    std::vector<std::uint8_t> supp_rates {
-        0x01,   // supported rates tag
-        0x08,   // len
-        0x82, 0x84, 0x8b, 0x96, 0x24, 0x30, 0x48, 0x6c
-    };
-
-    // add fuzzed supported rates
-    std::vector<std::uint8_t> fh_params_tag{0x02};
-    for (auto &fh_param: fuzzer_fh_params.get_mutated()) {
-        co_yield combine_vec({ssid, supp_rates, fh_params_tag, fh_param});
-    }
-}
-
-generator<fuzz_t> ProbeResponseFuzzer::fuzz_tim() {
-    // add valid ssid
-    std::vector<std::uint8_t> ssid {
-        0x00,   // ssid tag
-        0x07,   // len(FUZZING)
-        0x46, 0x55, 0x5a, 0x5a, 0x49, 0x4e, 0x47
-    };
-
-    // add supported rates
-    std::vector<std::uint8_t> supp_rates {
-        0x01,   // supported rates tag
-        0x08,   // len
-        0x82, 0x84, 0x8b, 0x96, 0x24, 0x30, 0x48, 0x6c
-    };
-
-    // add fuzzed supported rates
-    std::vector<std::uint8_t> tim_params_tag{0x05};
-    for (auto &tim: fuzzer_tim.get_mutated()) {
-        co_yield combine_vec({ssid, supp_rates, tim_params_tag, tim});
-    }
-}
-
-generator<fuzz_t> ProbeResponseFuzzer::fuzz_cf_params() {
-    // add valid ssid
-    std::vector<std::uint8_t> ssid {
-        0x00,   // ssid tag
-        0x07,   // len(FUZZING)
-        0x46, 0x55, 0x5a, 0x5a, 0x49, 0x4e, 0x47
-    };
-
-    // add supported rates
-    std::vector<std::uint8_t> supp_rates {
-        0x01,   // supported rates tag
-        0x08,   // len
-        0x82, 0x84, 0x8b, 0x96, 0x24, 0x30, 0x48, 0x6c
-    };
-
-    // add fuzzed supported rates
-    std::vector<std::uint8_t> cf_params_tag{0x04};
-    for(auto &cf_param: fuzzer_cf_params.get_mutated()) {
-        co_yield combine_vec({ssid, supp_rates, cf_params_tag, cf_param});
-    }
-}
-
-generator<fuzz_t> ProbeResponseFuzzer::fuzz_generic(std::uint8_t tag, Fuzzable &fuzzer) {
-    // add valid ssid
-    std::vector<std::uint8_t> ssid {
-        0x00,   // ssid tag
-        0x07,   // len(FUZZING)
-        0x46, 0x55, 0x5a, 0x5a, 0x49, 0x4e, 0x47
-    };
-
-    // add supported rates
-    std::vector<std::uint8_t> supp_rates {
-        0x01,   // supported rates tag
-        0x08,   // len
-        0x82, 0x84, 0x8b, 0x96, 0x24, 0x30, 0x48, 0x6c
-    };
-
-    // add fuzzed fields
-    std::vector<std::uint8_t> param_tag{tag};
-    for (auto &param: fuzzer.get_mutated()) {
-        co_yield combine_vec({ssid, supp_rates, param_tag, param});
-    }
-}
-
-generator<fuzz_t> ProbeResponseFuzzer::fuzz_erp() {
-    return fuzz_generic(0x2a, fuzzer_erp);
 }

@@ -4,12 +4,15 @@
 #include <vector>
 #include <cinttypes>
 #include "fuzzer/fuzzable.h"
+#include "fuzzer/tags/tagged_params.h"
 #include "utils/generator.h"
 #include "utils/vector_appender.h"
 
 using namespace std::literals::string_literals;
 
-struct SSIDFuzzer: public Fuzzable {
+struct SSIDFuzzer: public Fuzzable, public TaggedParams {
+
+    SSIDFuzzer(): TaggedParams(0x00, *this) {}
 
     size_t num_mutations() override {
         return fuzz_lengths.size() + fuzz_dict.size() + 2;
@@ -43,6 +46,29 @@ struct SSIDFuzzer: public Fuzzable {
             auto ssid = get_printable(255);
 
             co_yield combine_vec({ssid_len, ssid});
+        }
+    }
+
+    generator<std::vector<std::uint8_t>> get_whole_param_set() override {
+        // add valid supported rates
+        std::vector<std::uint8_t> supp_rates {
+            0x01,   // supported rates tag
+            0x08,   // len
+            0x82, 0x84, 0x8b, 0x96, 0x24, 0x30, 0x48, 0x6c
+        };
+
+        // add valid DS param
+        std::vector<std::uint8_t> ds_param {
+            0x03,   // DS tag
+            0x01,   // len
+            0x02    // channel 2    // TODO get valid channel
+        };
+
+        // add fuzzed ssid
+        std::vector<std::uint8_t> ssid_tag{tag};
+
+        for (auto &ssid: get_mutated()) {
+            co_yield combine_vec({supp_rates, ds_param, ssid_tag, ssid});
         }
     }
 

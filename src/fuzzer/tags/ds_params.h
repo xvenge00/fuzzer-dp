@@ -9,8 +9,11 @@
 #include "utils/vector_appender.h"
 #include "fuzzer/fuzzable.h"
 #include "fuzzer/utils/vector_generators.h"
+#include "fuzzer/tags/tagged_params.h"
 
-struct DSParamsFuzzer: public Fuzzable {
+struct DSParamsFuzzer: public Fuzzable, public TaggedParams {
+    DSParamsFuzzer(): TaggedParams(0x03, *this) {}
+
     size_t num_mutations() override {
         return fuzzing_lengths.size() + invalid_channels.size();
     }

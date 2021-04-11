@@ -23,14 +23,6 @@ struct ProbeResponseFuzzer: public ResponseFuzzer {
 
 private:
     generator<fuzz_t> fuzz_prb_req_content();
-    generator<fuzz_t> fuzz_ssid();
-    generator<fuzz_t> fuzz_supported_rates();
-    generator<fuzz_t> fuzz_ds_params();
-    generator<fuzz_t> fuzz_fh_params();
-    generator<fuzz_t> fuzz_tim();
-    generator<fuzz_t> fuzz_cf_params();
-    generator<fuzz_t> fuzz_erp();
-    generator<fuzz_t> fuzz_generic(std::uint8_t tag, Fuzzable &fuzzer);
 
     SSIDFuzzer fuzzer_ssid{};
     SupportedRatesFuzzer fuzzer_supported_rates{};
@@ -38,7 +30,7 @@ private:
     FHParamsFuzzer fuzzer_fh_params{};
     TIMFuzzer fuzzer_tim{};
     CFParamsFuzzer fuzzer_cf_params{};
-    GenericTagFuzzer fuzzer_erp{};
+    GenericTagFuzzer fuzzer_erp{0x2a};
 };
 
 #endif //CPP_PROBE_RESPONSE_H

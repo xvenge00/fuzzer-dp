@@ -5,8 +5,11 @@
 #include <array>
 #include <stdexcept>
 #include "fuzzer/utils/vector_generators.h"
+#include "fuzzer/tags/tagged_params.h"
 
-struct TIMFuzzer: public Fuzzable {
+struct TIMFuzzer: public Fuzzable, public TaggedParams {
+    TIMFuzzer(): TaggedParams(0x05, *this) {}
+
     size_t num_mutations() override {
         return fuzzing_lengths.size()
             + fuzzing_real_lengths.size()
