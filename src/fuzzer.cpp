@@ -46,6 +46,8 @@ int8_t get_frame_type(const std::uint8_t *packet, size_t packet_size) {
     void (* teardown) (pcap *)
 ) {
     struct pcap_pkthdr header{};
+    auto frame_generator = fuzzer.get_mutated();
+    auto frame_generator_it = frame_generator.begin();
 
     while(true) {
         if (setup != nullptr) {
@@ -64,10 +66,14 @@ int8_t get_frame_type(const std::uint8_t *packet, size_t packet_size) {
 
                 if (strncmp((const char *)mac, (const char*) fuzzed_device_mac.data(), 6) == 0) {
                     print_mac(mac);
-                    auto frame = fuzzer.get_mutated();
-                    pcap_sendpacket(handle, frame.data(), frame.size());
 
-                    sent_frames.push_back(frame);
+                    if (frame_generator_it != frame_generator.end()) {
+                        pcap_sendpacket(handle, frame_generator_it->data(), frame_generator_it->size());
+                        sent_frames.push_back(*frame_generator_it);
+                        ++frame_generator_it;
+                    } else {
+                        throw std::runtime_error("exhausted fuzz pool");
+                    }
                 }
             }
         } catch (std::runtime_error &e) {

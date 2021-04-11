@@ -3,19 +3,19 @@
 
 #include <array>
 #include "fuzzable.h"
+#include "fuzzer/fuzzer.h"
 
-struct ResponseFuzzer: public Fuzzable {
+struct ResponseFuzzer: public Fuzzer {
     ResponseFuzzer(
         std::uint8_t responds_to_subtype,
-        std::array<std::uint8_t, 6> source_mac,
-        std::array<std::uint8_t, 6> fuzzed_device_mac
-    ):  responds_to_subtype(responds_to_subtype),
-        source_mac(source_mac),
+        mac_t source_mac,
+        mac_t fuzzed_device_mac
+    ):  Fuzzer(source_mac),
+        responds_to_subtype(responds_to_subtype),
         fuzzed_device_mac(fuzzed_device_mac) {}
 
     const std::uint8_t responds_to_subtype;
-    const std::array<std::uint8_t, 6> source_mac;
-    const std::array<std::uint8_t, 6> fuzzed_device_mac;
+    const mac_t fuzzed_device_mac;
 };
 
 #endif //CPP_RESPONSE_FUZZER_H

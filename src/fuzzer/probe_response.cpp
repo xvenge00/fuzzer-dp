@@ -19,7 +19,7 @@ size_t ProbeResponseFuzzer::num_mutations() {
         fuzzer_erp.num_mutations();
 }
 
-std::vector<uint8_t> ProbeResponseFuzzer::get_mutated() {
+generator<fuzz_t> ProbeResponseFuzzer::get_mutated() {
     std::vector<std::uint8_t> rt = get_base_rt();
 
     /* MAC header */
@@ -42,21 +42,16 @@ std::vector<uint8_t> ProbeResponseFuzzer::get_mutated() {
     std::vector<std::uint8_t> ieee802_frame_ {(std::uint8_t *)&ieee802_frame, (std::uint8_t *)&ieee802_frame + sizeof(struct ieee80211_frame)};
 
     /* prb content */
-    std::vector<std::uint8_t> content = fuzz_prb_req_content();
+    for (auto &content: fuzz_prb_req_content()) {
+        auto result = combine_vec({rt, ieee802_frame_, content});
+        uint32_t crc = crc32(result.size(), result.data());
+        std::copy((uint8_t *)&crc, (uint8_t *)(&crc) + 4, std::back_inserter(result));
 
-
-    std::vector<std::uint8_t> result{};
-    // TODO generic vector combiner
-    std::copy(rt.begin(), rt.end(), std::back_inserter(result));
-    std::copy(ieee802_frame_.begin(), ieee802_frame_.end(), std::back_inserter(result));
-    std::copy(content.begin(), content.end(), std::back_inserter(result));
-
-    uint32_t crc = crc32(result.size(), result.data());
-    std::copy((uint8_t *)&crc, (uint8_t *)(&crc) + 4, std::back_inserter(result));
-    return result;
+        co_yield result;
+    }
 }
 
-std::vector<std::uint8_t> ProbeResponseFuzzer::fuzz_prb_req_content() {
+generator<fuzz_t> ProbeResponseFuzzer::fuzz_prb_req_content() {
     /*
      * Management Frame Information Elements
      *
@@ -78,43 +73,36 @@ std::vector<std::uint8_t> ProbeResponseFuzzer::fuzz_prb_req_content() {
     std::vector<std::uint8_t> capability{0x01, 0x04};
 
 
-    std::vector<std::uint8_t> tagged_params;
-    if (fuzzed_ssids < fuzzer_ssid.num_mutations()) {
-        tagged_params = fuzz_ssid();
-
-        ++fuzzed_ssids;
-    } else if (fuzzed_supp_rates < fuzzer_supported_rates.num_mutations()) {
-        tagged_params = fuzz_supported_rates();
-
-        ++fuzzed_supp_rates;
-    } else if (fuzzed_ds_params < fuzzer_ds_params.num_mutations()) {
-        tagged_params = fuzz_ds_params();
-
-        ++fuzzed_ds_params;
-    } else if (fuzzed_fh_params < fuzzer_fh_params.num_mutations()) {
-        tagged_params = fuzz_fh_params();
-
-        ++fuzzed_fh_params;
-    } else if (fuzzed_tims < fuzzer_tim.num_mutations()) {
-        tagged_params = fuzz_tim();
-
-        ++fuzzed_tims;
-    } else if (fuzzed_cf_params < fuzzer_cf_params.num_mutations()) {
-        tagged_params = fuzz_cf_params();
-
-        ++fuzzed_cf_params;
-    } else if (fuzzed_erp_params < fuzzer_erp.num_mutations()) {
-        tagged_params = fuzz_erp();
-
-        ++fuzzed_erp_params;
-    } else {
-        throw std::runtime_error("fuzzing pool exhausted");
+    for (auto &fuzzed_ssid: fuzz_ssid()) {
+        co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_ssid});
     }
 
-    return combine_vec({timestamp, beacon_interval, capability, tagged_params});
+    for (auto &fuzzed_supp_rate: fuzz_supported_rates()) {
+        co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_supp_rate});
+    }
+
+    for (auto &fuzzed_ds_param: fuzz_ds_params()) {
+        co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_ds_param});
+    }
+
+    for (auto &fuzzed_fh_param: fuzz_fh_params()) {
+        co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_fh_param});
+    }
+
+    for (auto &fuzzed_tim: fuzz_tim()) {
+        co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_tim});
+    }
+
+    for (auto &fuzzed_cf_param: fuzz_cf_params()) {
+        co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_cf_param});
+    }
+
+    for (auto &fuzzed_erp: fuzz_erp()) {
+        co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_erp});
+    }
 }
 
-std::vector<std::uint8_t> ProbeResponseFuzzer::fuzz_ssid() {
+generator<fuzz_t> ProbeResponseFuzzer::fuzz_ssid() {
 // add valid supported rates
     std::vector<std::uint8_t> supp_rates {
         0x01,   // supported rates tag
@@ -126,17 +114,18 @@ std::vector<std::uint8_t> ProbeResponseFuzzer::fuzz_ssid() {
     std::vector<std::uint8_t> ds_param {
         0x03,   // DS tag
         0x01,   // len
-        0x02    // channel 2    // TODO get chanel
+        0x02    // channel 2    // TODO get channel
     };
 
     // add fuzzed ssid
     std::vector<std::uint8_t> ssid_tag{0x00};
-    std::vector<std::uint8_t> ssid = fuzzer_ssid.get_mutated();
 
-    return combine_vec({supp_rates, ds_param, ssid_tag, ssid});
+    for (auto &ssid: fuzzer_ssid.get_mutated()) {
+        co_yield combine_vec({supp_rates, ds_param, ssid_tag, ssid});
+    }
 }
 
-std::vector<std::uint8_t> ProbeResponseFuzzer::fuzz_supported_rates() {
+generator<fuzz_t> ProbeResponseFuzzer::fuzz_supported_rates() {
     // add valid ssid
     std::vector<std::uint8_t> ssid {
         0x00,   // ssid tag
@@ -153,12 +142,12 @@ std::vector<std::uint8_t> ProbeResponseFuzzer::fuzz_supported_rates() {
 
     // add fuzzed supported rates
     std::vector<std::uint8_t> supp_rates_tag{0x01};
-    std::vector<std::uint8_t> supp_rates = fuzzer_supported_rates.get_mutated();
-
-    return combine_vec({ssid, ds_param, supp_rates_tag, supp_rates});
+    for (auto &rate: fuzzer_supported_rates.get_mutated()) {
+        co_yield combine_vec({ssid, ds_param, supp_rates_tag, rate});
+    }
 }
 
-std::vector<std::uint8_t> ProbeResponseFuzzer::fuzz_ds_params() {
+generator<fuzz_t> ProbeResponseFuzzer::fuzz_ds_params() {
     // add valid ssid
     std::vector<std::uint8_t> ssid {
         0x00,   // ssid tag
@@ -175,12 +164,12 @@ std::vector<std::uint8_t> ProbeResponseFuzzer::fuzz_ds_params() {
 
     // add fuzzed supported rates
     std::vector<std::uint8_t> ds_params_tag{0x03};
-    std::vector<std::uint8_t> ds_params = fuzzer_ds_params.get_mutated();
-
-    return combine_vec({ssid, supp_rates, ds_params_tag, ds_params});
+    for (auto &ds_param: fuzzer_ds_params.get_mutated()) {
+        co_yield combine_vec({ssid, supp_rates, ds_params_tag, ds_param});
+    }
 }
 
-std::vector<std::uint8_t> ProbeResponseFuzzer::fuzz_fh_params() {
+generator<fuzz_t> ProbeResponseFuzzer::fuzz_fh_params() {
     // add valid ssid
     std::vector<std::uint8_t> ssid {
         0x00,   // ssid tag
@@ -197,12 +186,12 @@ std::vector<std::uint8_t> ProbeResponseFuzzer::fuzz_fh_params() {
 
     // add fuzzed supported rates
     std::vector<std::uint8_t> fh_params_tag{0x02};
-    std::vector<std::uint8_t> fh_params = fuzzer_fh_params.get_mutated();
-
-    return combine_vec({ssid, supp_rates, fh_params_tag, fh_params});
+    for (auto &fh_param: fuzzer_fh_params.get_mutated()) {
+        co_yield combine_vec({ssid, supp_rates, fh_params_tag, fh_param});
+    }
 }
 
-std::vector<std::uint8_t> ProbeResponseFuzzer::fuzz_tim() {
+generator<fuzz_t> ProbeResponseFuzzer::fuzz_tim() {
     // add valid ssid
     std::vector<std::uint8_t> ssid {
         0x00,   // ssid tag
@@ -219,12 +208,12 @@ std::vector<std::uint8_t> ProbeResponseFuzzer::fuzz_tim() {
 
     // add fuzzed supported rates
     std::vector<std::uint8_t> tim_params_tag{0x05};
-    std::vector<std::uint8_t> tim_params = fuzzer_tim.get_mutated();
-
-    return combine_vec({ssid, supp_rates, tim_params_tag, tim_params});
+    for (auto &tim: fuzzer_tim.get_mutated()) {
+        co_yield combine_vec({ssid, supp_rates, tim_params_tag, tim});
+    }
 }
 
-std::vector<std::uint8_t> ProbeResponseFuzzer::fuzz_cf_params() {
+generator<fuzz_t> ProbeResponseFuzzer::fuzz_cf_params() {
     // add valid ssid
     std::vector<std::uint8_t> ssid {
         0x00,   // ssid tag
@@ -241,12 +230,12 @@ std::vector<std::uint8_t> ProbeResponseFuzzer::fuzz_cf_params() {
 
     // add fuzzed supported rates
     std::vector<std::uint8_t> cf_params_tag{0x04};
-    std::vector<std::uint8_t> cf_params = fuzzer_cf_params.get_mutated();
-
-    return combine_vec({ssid, supp_rates, cf_params_tag, cf_params});
+    for(auto &cf_param: fuzz_cf_params()) {
+        co_yield combine_vec({ssid, supp_rates, cf_params_tag, cf_param});
+    }
 }
 
-std::vector<std::uint8_t> ProbeResponseFuzzer::fuzz_generic(std::uint8_t tag, Fuzzable &fuzzer) {
+generator<fuzz_t> ProbeResponseFuzzer::fuzz_generic(std::uint8_t tag, Fuzzable &fuzzer) {
     // add valid ssid
     std::vector<std::uint8_t> ssid {
         0x00,   // ssid tag
@@ -263,11 +252,11 @@ std::vector<std::uint8_t> ProbeResponseFuzzer::fuzz_generic(std::uint8_t tag, Fu
 
     // add fuzzed fields
     std::vector<std::uint8_t> param_tag{tag};
-    std::vector<std::uint8_t> param = fuzzer.get_mutated();
-
-    return combine_vec({ssid, supp_rates, param_tag, param});
+    for (auto &param: fuzzer.get_mutated()) {
+        co_yield combine_vec({ssid, supp_rates, param_tag, param});
+    }
 }
 
-std::vector<std::uint8_t> ProbeResponseFuzzer::fuzz_erp() {
+generator<fuzz_t> ProbeResponseFuzzer::fuzz_erp() {
     return fuzz_generic(0x2a, fuzzer_erp);
 }

@@ -6,7 +6,6 @@
 // Copyright (c) Microsoft Corporation.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
-//#include <yvals_core.h>
 #include <exception>
 #include <memory>
 #include <coroutine>
@@ -113,7 +112,7 @@ struct generator {
         }
 
         [[nodiscard]] pointer operator->() const noexcept {
-            return *(std::get<0>(coro_.promise().value));
+            return std::get<0>(coro_.promise().value);
         }
     };
 

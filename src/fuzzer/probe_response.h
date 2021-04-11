@@ -13,42 +13,32 @@
 
 struct ProbeResponseFuzzer: public ResponseFuzzer {
     ProbeResponseFuzzer(
-        std::array<std::uint8_t, 6> source_mac,
-        std::array<std::uint8_t, 6> fuzzed_device_mac
+        mac_t source_mac,
+        mac_t fuzzed_device_mac
     );
 
     size_t num_mutations() override;
 
-    std::vector<uint8_t> get_mutated() override;
+    generator<fuzz_t> get_mutated() override;
 
 private:
-    std::vector<std::uint8_t> fuzz_prb_req_content();
-    std::vector<std::uint8_t> fuzz_ssid();
-    std::vector<std::uint8_t> fuzz_supported_rates();
-    std::vector<std::uint8_t> fuzz_ds_params();
-    std::vector<std::uint8_t> fuzz_fh_params();
-    std::vector<std::uint8_t> fuzz_tim();
-    std::vector<std::uint8_t> fuzz_cf_params();
-    std::vector<std::uint8_t> fuzz_erp();
-    std::vector<std::uint8_t> fuzz_generic(std::uint8_t tag, Fuzzable &fuzzer);
+    generator<fuzz_t> fuzz_prb_req_content();
+    generator<fuzz_t> fuzz_ssid();
+    generator<fuzz_t> fuzz_supported_rates();
+    generator<fuzz_t> fuzz_ds_params();
+    generator<fuzz_t> fuzz_fh_params();
+    generator<fuzz_t> fuzz_tim();
+    generator<fuzz_t> fuzz_cf_params();
+    generator<fuzz_t> fuzz_erp();
+    generator<fuzz_t> fuzz_generic(std::uint8_t tag, Fuzzable &fuzzer);
 
-    FuzzableSSID fuzzer_ssid{};
+    SSIDFuzzer fuzzer_ssid{};
     SupportedRatesFuzzer fuzzer_supported_rates{};
     DSParamsFuzzer fuzzer_ds_params{};
     FHParamsFuzzer fuzzer_fh_params{};
     TIMFuzzer fuzzer_tim{};
     CFParamsFuzzer fuzzer_cf_params{};
     GenericTagFuzzer fuzzer_erp{};
-
-//    RandProvider rand_provider;
-
-    unsigned fuzzed_ssids = 0;
-    unsigned fuzzed_supp_rates = 0;
-    unsigned fuzzed_ds_params = 0;
-    unsigned fuzzed_fh_params = 0;
-    unsigned fuzzed_tims = 0;
-    unsigned fuzzed_cf_params = 0;
-    unsigned fuzzed_erp_params = 0;
 };
 
 #endif //CPP_PROBE_RESPONSE_H

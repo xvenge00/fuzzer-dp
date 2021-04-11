@@ -5,7 +5,7 @@
 #include "utils/hash.h"
 
 BeaconFrameFuzzer::BeaconFrameFuzzer(const std::uint8_t *src_mac, unsigned int rand_seed):
-ssid_fuzzer(rand_seed),
+//ssid_fuzzer(rand_seed),
 rand_provider(rand_seed)
 {
     memcpy(source_mac, src_mac, 6);
@@ -33,9 +33,9 @@ std::vector<std::uint8_t> BeaconFrameFuzzer::fuzz_content() {
     std::vector<std::uint8_t> capability{0x01, 0x04};
 
     std::vector<std::uint8_t> ssid_tag{0x00};
-    std::vector<std::uint8_t> ssid;
+    std::vector<std::uint8_t> ssid{};   // TODO
 //    try {
-    ssid = ssid_fuzzer.next();
+//    ssid = ssid_fuzzer.next();
 //    } catch (FuzzException &e) {
 //        fuzzer_ssid.init();
 //        ssid = fuzzer_ssid.next();

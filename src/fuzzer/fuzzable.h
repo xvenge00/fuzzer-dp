@@ -3,9 +3,12 @@
 
 #include <vector>
 #include <cinttypes>
+#include "utils/generator.h"
+
+using fuzz_t = std::vector<std::uint8_t>;
 
 struct Fuzzable {
-    virtual std::vector<uint8_t> get_mutated() = 0;
+    virtual generator<fuzz_t> get_mutated() = 0;
 
     virtual size_t num_mutations() = 0;
 

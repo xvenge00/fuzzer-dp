@@ -6,6 +6,7 @@
 #include <array>
 #include "utils/vector_appender.h"
 #include "fuzzer/fuzzable.h"
+#include "fuzzer/utils/vector_generators.h"
 
 struct SupportedRatesFuzzer: public Fuzzable {
     size_t num_mutations() override {
@@ -13,32 +14,26 @@ struct SupportedRatesFuzzer: public Fuzzable {
     }
 
 
-    std::vector<std::uint8_t> get_mutated() override {
-        std::vector<std::uint8_t> res;
+    generator<fuzz_t> get_mutated() override {
+        // fuzz invalid rates
+        co_yield {
+            0x08,   // len
+            0x00, 0x01, 0xff, 0x01, 0x00, 0x02, 0x41, 0xcb
+        };
 
-        if (!fuzzed_invalid_rates) {    // fuzz invalid rates
-            res = {
-                0x08,   // len
-                0x00, 0x01, 0xff, 0x01, 0x00, 0x02, 0x41, 0xcb};
-            fuzzed_invalid_rates = true;
-        } else if (i_rates_len < rates_len.size()) {    // fuzz invalid lengths
-            auto rates = get_rates(rates_len[i_rates_len]);
-            res = combine_vec({{rates_len[i_rates_len]}, rates});
-
-            ++i_rates_len;
-        } else {
-            res = combine_vec({
-                {8},
-                get_rates(255)
-            });
+        // fuzz invalid lengths
+        for(auto &len: rates_len) {
+            auto rates = get_increasing_vector(len);
+            co_yield combine_vec({{len}, rates});
         }
 
-        return res;
+        co_yield combine_vec({
+            {8},
+            get_increasing_vector(255)
+        });
     }
 
 private:
-    bool fuzzed_invalid_rates;
-    unsigned i_rates_len = 0;
     std::array<std::uint8_t, 7> rates_len = {
         0,
         1,
@@ -48,16 +43,6 @@ private:
         32,
         255
     };
-
-    std::vector<std::uint8_t> get_rates(std::uint8_t len) {
-        std::vector<std::uint8_t> res{};
-        res.reserve(len);
-        for (std::uint8_t i = 0; i < len; ++i) {
-            res.push_back(i);
-        }
-
-        return res;
-    }
 };
 
 #endif //CPP_SUPPORTED_RATES_H
