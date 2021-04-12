@@ -15,6 +15,7 @@
 #include "fuzzer/beacon_fuzzer.h"
 #include "fuzzer/disass_fuzzer.h"
 #include "fuzzer/deauth_fuzzer.h"
+#include "fuzzer/authentication.h"
 #include "utils/frame.h"
 
 [[noreturn]] void fuzz_response(
@@ -172,6 +173,28 @@
 ) {
     spdlog::info("fuzzing deauth");
     auto fuzzer = DeauthentiactionFuzzer{src_mac, fuzzed_device_mac};
+    fuzz_push(
+        handle,
+        fuzzer,
+        wait_duration,
+        packets_resend_count,
+        sent_frames,
+        nullptr,
+        nullptr
+    );
+}
+
+// TODO config AuthenticationFuzzer
+[[noreturn]] void fuzz_auth(
+    pcap *handle,
+    const std::array<std::uint8_t, 6> &src_mac,
+    const std::array<std::uint8_t, 6> &fuzzed_device_mac,
+    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames,
+    const std::chrono::milliseconds &wait_duration,
+    unsigned packets_resend_count
+) {
+    spdlog::info("fuzzing auth");
+    auto fuzzer = AuthenticationFuzzer{src_mac, fuzzed_device_mac};
     fuzz_push(
         handle,
         fuzzer,
