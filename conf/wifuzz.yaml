@@ -1,8 +1,11 @@
-{
-  interface: "wlp3s0",
-  random_seed: 420,
-  src_mac: "8c:dc:02:d7:35:2b",
-  test_device_mac: "d6:10:4e:27:f6:b0",
-  fuzzer_type: "deauthentication",
-  frame_history_len: 10
-}
+---
+frame_history_len: 10
+fuzzer_type: "probe request"
+interface: wlp7s0f4u2u2
+random_seed: 420
+src_mac: "8c:dc:02:d7:35:2b"  # zte router
+test_device_mac: "d6:10:4e:27:f6:b0"  # mobil
+#test_device_mac: "3c:71:bf:a6:e6:d0" # ESP
+#test_device_mac: "08:c5:e1:15:98:1a"
+#test_device_mac: "0a:c5:e1:15:98:1a"
+#const std::array<std::uint8_t, 6>  my_mac = {0x00, 0x23, 0x45, 0x67, 0x89, 0xab};  // random

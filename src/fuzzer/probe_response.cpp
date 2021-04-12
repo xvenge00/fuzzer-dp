@@ -1,17 +1,57 @@
 #include <cstring>
-#include "frame_factory.h"
-#include "utils/vector_appender.h"
+#include "probe_response.h"
 #include "net80211.h"
 #include "utils/hash.h"
-#include "beacon_fuzzer.h"
+#include "frame_factory.h"
 
-BeaconFrameFuzzer::BeaconFrameFuzzer(
-    mac_t src_mac,
+ProbeResponseFuzzer::ProbeResponseFuzzer(
+    mac_t source_mac,
     mac_t fuzzed_device_mac
-): Fuzzer(src_mac, fuzzed_device_mac) {}
+): ResponseFuzzer(IEEE80211_FC0_SUBTYPE_PROBE_REQ, source_mac, fuzzed_device_mac) {}
 
-generator<fuzz_t> BeaconFrameFuzzer::fuzz_content()
-{
+size_t ProbeResponseFuzzer::num_mutations() {
+    return fuzzer_ssid.num_mutations() +
+        fuzzer_supported_rates.num_mutations() +
+        fuzzer_ds_params.num_mutations() +
+        fuzzer_fh_params.num_mutations() +
+        fuzzer_tim.num_mutations() +
+        fuzzer_cf_params.num_mutations() +
+        fuzzer_erp.num_mutations();
+}
+
+generator<fuzz_t> ProbeResponseFuzzer::get_mutated() {
+    std::vector<std::uint8_t> rt = get_base_rt();
+
+    /* MAC header */
+    struct ieee80211_frame ieee802_frame{};
+
+    ieee802_frame.i_fc[0] = 0x50;     // probe response
+    ieee802_frame.i_fc[1] = 0x00;
+
+    ieee802_frame.i_dur[0] = 0x3a;    // copied from wireshark
+    ieee802_frame.i_dur[1] = 0x01;
+
+    memcpy(ieee802_frame.i_addr1, fuzzed_device_mac.data(), 6);   // copy destination mac
+    memcpy(ieee802_frame.i_addr2, source_mac.data(), 6);   // copy my mac
+    memcpy(ieee802_frame.i_addr3, source_mac.data(), 6);   // copy my mac
+
+    // idk why
+    ieee802_frame.i_seq[0] = 0x90;
+    ieee802_frame.i_seq[1] = 0x08;
+
+    std::vector<std::uint8_t> ieee802_frame_ {(std::uint8_t *)&ieee802_frame, (std::uint8_t *)&ieee802_frame + sizeof(struct ieee80211_frame)};
+
+    /* prb content */
+    for (auto &content: fuzz_prb_req_content()) {
+        auto result = combine_vec({rt, ieee802_frame_, content});
+        uint32_t crc = crc32(result.size(), result.data());
+        std::copy((uint8_t *)&crc, (uint8_t *)(&crc) + 4, std::back_inserter(result));
+
+        co_yield result;
+    }
+}
+
+generator<fuzz_t> ProbeResponseFuzzer::fuzz_prb_req_content() {
     /*
      * Management Frame Information Elements
      *
@@ -59,49 +99,4 @@ generator<fuzz_t> BeaconFrameFuzzer::fuzz_content()
     for (auto &fuzzed_erp: fuzzer_erp.get_whole_param_set()) {
         co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_erp});
     }
-}
-
-generator<fuzz_t> BeaconFrameFuzzer::get_mutated() {
-    std::vector<std::uint8_t> rt = get_base_rt();
-
-//        std::vector<std::uint8_t> mac{mac_arr, mac_arr + 6};
-
-    /* MAC header */
-    struct ieee80211_frame ieee802_frame{};
-
-    ieee802_frame.i_fc[0] = 0x80;     // beacon
-    ieee802_frame.i_fc[1] = 0x00;
-
-    ieee802_frame.i_dur[0] = 0x3a;    // copied from wireshark
-    ieee802_frame.i_dur[1] = 0x01;
-
-    mac_t broadcast_mac{0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-    memcpy(ieee802_frame.i_addr1, broadcast_mac.data(), 6);   // copy destination mac
-    memcpy(ieee802_frame.i_addr2, source_mac.data(), 6);   // copy my mac
-    memcpy(ieee802_frame.i_addr3, source_mac.data(), 6);   // copy my mac
-
-    // idk why
-    ieee802_frame.i_seq[0] = 0x90;
-    ieee802_frame.i_seq[1] = 0x08;
-
-    std::vector<std::uint8_t> ieee802_frame_ {(std::uint8_t *)&ieee802_frame, (std::uint8_t *)&ieee802_frame + sizeof(struct ieee80211_frame)};
-
-    /* beacon content */
-    for (auto &content: fuzz_content()) {
-        auto result = combine_vec({rt, ieee802_frame_, content});
-        uint32_t crc = crc32(result.size(), result.data());
-        std::copy((uint8_t *)&crc, (uint8_t *)(&crc) + 4, std::back_inserter(result));
-
-        co_yield result;
-    }
-}
-
-size_t BeaconFrameFuzzer::num_mutations() {
-    return fuzzer_ssid.num_mutations() +
-        fuzzer_supported_rates.num_mutations() +
-        fuzzer_ds_params.num_mutations() +
-        fuzzer_fh_params.num_mutations() +
-        fuzzer_tim.num_mutations() +
-        fuzzer_cf_params.num_mutations() +
-        fuzzer_erp.num_mutations();
 }

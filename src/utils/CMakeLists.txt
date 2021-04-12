@@ -1,4 +1,4 @@
-add_library(fuzzer_utils hash.cpp debug.cpp)
+add_library(fuzzer_utils hash.cpp debug.cpp frame.cpp)
 
 target_include_directories(fuzzer_utils
 						   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
