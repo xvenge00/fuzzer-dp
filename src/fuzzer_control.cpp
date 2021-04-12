@@ -5,7 +5,6 @@
 #include <thread>
 #include <monitor/monitor.h>
 #include <fuzzer/probe_response.h>
-#include "fuzzer/frame_factory.h"
 #include "logging/guarded_circular_buffer.h"
 #include "fuzzer_control.h"
 #include "net80211.h"

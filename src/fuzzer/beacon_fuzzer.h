@@ -2,6 +2,14 @@
 #define CPP_BEACON_FUZZER_H
 
 #include "fuzzer/fuzzer.h"
+#include <fuzzer/tags/ssid.h>
+#include <fuzzer/tags/supported_rates.h>
+#include <fuzzer/tags/ds_params.h>
+#include <fuzzer/tags/fh_param.h>
+#include <fuzzer/tags/cf_param.h>
+#include <fuzzer/tags/tim.h>
+#include <fuzzer/tags/generic_tag.h>
+
 
 struct BeaconFrameFuzzer: public Fuzzer {
     explicit BeaconFrameFuzzer(
