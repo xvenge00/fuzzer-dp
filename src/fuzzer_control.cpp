@@ -51,7 +51,8 @@ void fuzz_response(
 //                    print_mac(mac);
 
                     if (frame_generator_it != frame_generator.end()) {
-                        pcap_sendpacket(handle, frame_generator_it->data(), frame_generator_it->size());
+                        auto frame = *frame_generator_it;
+                        pcap_sendpacket(handle, frame.data(), frame.size());
                         sent_frames.push_back(*frame_generator_it);
                         ++frame_generator_it;
                         ++fuzzed_inputs;
