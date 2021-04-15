@@ -8,6 +8,7 @@ enum FuzzerType {
     PRB_RESP,
     DISASS,
     DEAUTH,
+    AUTH,
     BEACON,
 };
 

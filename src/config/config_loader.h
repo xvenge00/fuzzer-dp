@@ -31,6 +31,8 @@ FuzzerType parse_fuzzer_type(std::string const& in ) {
         return DISASS;
     } else if (in == "deauthentication") {
         return DEAUTH;
+    } else if (in == "auth") {
+        return AUTH;
     } else if (in == "beacon") {
         return BEACON;
     } else {
