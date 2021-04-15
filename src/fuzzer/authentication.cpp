@@ -1,7 +1,11 @@
 #include <utils/vector_appender.h>
+#include <spdlog/spdlog.h>
+#include "net80211.h"
+#include "fuzzer/utils/rt.h"
 #include "authentication.h"
 #include "fuzzer/primitives/int.h"
 #include "fuzzer/primitives/string.h"
+#include "utils/hash.h"
 
 AuthenticationFuzzer::AuthenticationFuzzer(
     mac_t source_mac,
@@ -29,6 +33,28 @@ const std::vector<std::uint16_t> &get_uint16_set(bool use_bigger) {
  */
 // TODO transaction number fuzzing
 generator<fuzz_t> AuthenticationFuzzer::get_mutated() {
+    std::vector<std::uint8_t> rt = get_base_rt();
+
+    /* MAC header */
+    struct ieee80211_frame ieee802_frame{};
+
+    ieee802_frame.i_fc[0] = 0xb0;     // authentication
+    ieee802_frame.i_fc[1] = 0x00;
+
+    ieee802_frame.i_dur[0] = 0x3a;    // copied from wireshark
+    ieee802_frame.i_dur[1] = 0x01;
+
+    mac_t broadcast_mac{0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+    memcpy(ieee802_frame.i_addr1, broadcast_mac.data(), 6);   // copy destination mac
+    memcpy(ieee802_frame.i_addr2, source_mac.data(), 6);   // copy my mac
+    memcpy(ieee802_frame.i_addr3, broadcast_mac.data(), 6);   // copy my mac
+
+    // idk why
+    ieee802_frame.i_seq[0] = 0x90;
+    ieee802_frame.i_seq[1] = 0x08;
+
+    std::vector<std::uint8_t> ieee802_frame_ {(std::uint8_t *)&ieee802_frame, (std::uint8_t *)&ieee802_frame + sizeof(struct ieee80211_frame)};
+
     for (auto alg_num: get_uint16_set(use_bigger_alg_num_set)) {
         for (auto status_code: get_uint16_set(use_bigger_stat_code_set)) {
 
@@ -37,7 +63,11 @@ generator<fuzz_t> AuthenticationFuzzer::get_mutated() {
                 auto codes = combine_vec_uint16({alg_num, 0, status_code});
                 auto str_vec = std::vector<uint8_t>{(uint8_t) str.length()};
 
-                co_yield combine_vec({codes, str_vec});
+                auto result = combine_vec({rt, ieee802_frame_, codes, str_vec});
+                uint32_t crc = crc32(result.size(), result.data());
+                std::copy((uint8_t *)&crc, (uint8_t *)(&crc) + 4, std::back_inserter(result));
+
+                co_yield result;
             }
 
             // TODO fuzz long strings
