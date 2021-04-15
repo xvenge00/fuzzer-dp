@@ -14,7 +14,7 @@ void fuzz_prb_resp(
     GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames
 );
 
-[[noreturn]] void fuzz_beacon(
+void fuzz_beacon(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
     GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames,
@@ -22,7 +22,7 @@ void fuzz_prb_resp(
     unsigned packets_resend_count
 );
 
-[[noreturn]] void fuzz_disass(
+void fuzz_disass(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzzed_device_mac,
@@ -31,7 +31,7 @@ void fuzz_prb_resp(
     unsigned packets_resend_count
 );
 
-[[noreturn]] void fuzz_deauth(
+void fuzz_deauth(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzzed_device_mac,

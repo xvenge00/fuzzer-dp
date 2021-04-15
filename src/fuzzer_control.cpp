@@ -48,8 +48,6 @@ void fuzz_response(
                 auto *mac = get_prb_req_mac(ieee802_11_data, ieee802_11_size);
 
                 if (strncmp((const char *)mac, (const char*) fuzzed_device_mac.data(), 6) == 0) {
-//                    print_mac(mac);
-
                     if (frame_generator_it != frame_generator.end()) {
                         auto frame = *frame_generator_it;
                         pcap_sendpacket(handle, frame.data(), frame.size());
@@ -78,7 +76,7 @@ void fuzz_response(
     }
 }
 
-[[noreturn]] void fuzz_push(
+void fuzz_push(
     pcap *handle,
     Fuzzer &fuzzer,
     const std::chrono::milliseconds &wait_duration,
@@ -89,6 +87,8 @@ void fuzz_response(
 ) {
     auto frame_generator = fuzzer.get_mutated();
     auto frame_generator_it = frame_generator.begin();
+
+    unsigned fuzzed_inputs = 0;
 
     while (true) {
         if (setup != nullptr) {
@@ -103,12 +103,20 @@ void fuzz_response(
 
             sent_frames.push_back(*frame_generator_it);
             ++frame_generator_it;
+            ++fuzzed_inputs;
         } else {
             throw std::runtime_error("exhausted fuzz pool");
         }
 
         if (teardown != nullptr) {
             teardown(handle);
+        }
+
+        print_progress_bar(fuzzed_inputs, fuzzer.num_mutations());
+
+        // TODO fuj
+        if (fuzzed_inputs >= fuzzer.num_mutations()) {
+            break;
         }
 
         std::this_thread::sleep_for(wait_duration);
@@ -132,7 +140,7 @@ void fuzz_prb_resp(
         nullptr);
 }
 
-[[noreturn]] void fuzz_beacon(
+void fuzz_beacon(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
     GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames,
@@ -153,7 +161,7 @@ void fuzz_prb_resp(
     );
 }
 
-[[noreturn]] void fuzz_disass(
+void fuzz_disass(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzzed_device_mac,
@@ -174,7 +182,7 @@ void fuzz_prb_resp(
     );
 }
 
-[[noreturn]] void fuzz_deauth(
+void fuzz_deauth(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzzed_device_mac,
@@ -196,7 +204,7 @@ void fuzz_prb_resp(
 }
 
 // TODO config AuthenticationFuzzer
-[[noreturn]] void fuzz_auth(
+void fuzz_auth(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzzed_device_mac,
