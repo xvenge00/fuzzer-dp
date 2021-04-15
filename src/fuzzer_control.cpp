@@ -5,6 +5,7 @@
 #include <thread>
 #include <monitor/monitor.h>
 #include <fuzzer/probe_response.h>
+#include <utils/progress_bar.h>
 #include "logging/guarded_circular_buffer.h"
 #include "fuzzer_control.h"
 #include "net80211.h"
@@ -47,7 +48,7 @@ void fuzz_response(
                 auto *mac = get_prb_req_mac(ieee802_11_data, ieee802_11_size);
 
                 if (strncmp((const char *)mac, (const char*) fuzzed_device_mac.data(), 6) == 0) {
-                    print_mac(mac);
+//                    print_mac(mac);
 
                     if (frame_generator_it != frame_generator.end()) {
                         pcap_sendpacket(handle, frame_generator_it->data(), frame_generator_it->size());
@@ -66,6 +67,8 @@ void fuzz_response(
         if (teardown != nullptr) {
             teardown(handle);
         }
+
+        print_progress_bar(fuzzed_inputs, fuzzer.num_mutations());
 
         // TODO fuj
         if (fuzzed_inputs >= fuzzer.num_mutations()) {
