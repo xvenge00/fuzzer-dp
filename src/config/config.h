@@ -5,7 +5,7 @@
 #include <array>
 
 enum FuzzerType {
-    PRB_REQ,
+    PRB_RESP,
     DISASS,
     DEAUTH,
     BEACON,

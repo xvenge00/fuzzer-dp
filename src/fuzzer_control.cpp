@@ -238,7 +238,7 @@ int fuzz(Config config) {
     MonitorESP monitor{sent_frames};
 
     switch (config.fuzzer_type) {
-    case PRB_REQ:
+    case PRB_RESP:
         fuzz_prb_resp(handle, config.src_mac, config.test_device_mac, sent_frames);
         break;
     case BEACON:
