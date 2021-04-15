@@ -17,7 +17,7 @@
 #include "fuzzer/authentication.h"
 #include "utils/frame.h"
 
-[[noreturn]] void fuzz_response(
+void fuzz_response(
     pcap *handle,
     ResponseFuzzer &fuzzer,
     const std::array<std::uint8_t, 6> &fuzzed_device_mac,
@@ -28,6 +28,8 @@
     struct pcap_pkthdr header{};
     auto frame_generator = fuzzer.get_mutated();
     auto frame_generator_it = frame_generator.begin();
+
+    unsigned fuzzed_inputs = 0;
 
     while(true) {
         if (setup != nullptr) {
@@ -51,6 +53,7 @@
                         pcap_sendpacket(handle, frame_generator_it->data(), frame_generator_it->size());
                         sent_frames.push_back(*frame_generator_it);
                         ++frame_generator_it;
+                        ++fuzzed_inputs;
                     } else {
                         throw std::runtime_error("exhausted fuzz pool");
                     }
@@ -62,6 +65,11 @@
 
         if (teardown != nullptr) {
             teardown(handle);
+        }
+
+        // TODO fuj
+        if (fuzzed_inputs >= fuzzer.num_mutations()) {
+            break;
         }
     }
 }
@@ -103,7 +111,7 @@
     }
 }
 
-[[noreturn]] void fuzz_prb_resp(
+void fuzz_prb_resp(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzz_device_mac,
@@ -220,12 +228,16 @@ int fuzz(Config config) {
     switch (config.fuzzer_type) {
     case PRB_REQ:
         fuzz_prb_resp(handle, config.src_mac, config.test_device_mac, sent_frames);
+        break;
     case BEACON:
         fuzz_beacon(handle, config.src_mac, sent_frames, std::chrono::milliseconds{10}, 5); // TODO pass from config
+        break;
     case DEAUTH:
         fuzz_deauth(handle, config.src_mac, config.test_device_mac, sent_frames, std::chrono::milliseconds{100}, 5);
+        break;
     case DISASS:
         fuzz_disass(handle, config.src_mac, config.test_device_mac, sent_frames, std::chrono::milliseconds{100}, 5);
+        break;
     }
 
     return 0;

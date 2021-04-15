@@ -7,7 +7,7 @@
 #include "logging/guarded_circular_buffer.h"
 #include "config/config.h"
 
-[[noreturn]] void fuzz_prb_resp(
+void fuzz_prb_resp(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzz_device_mac,
