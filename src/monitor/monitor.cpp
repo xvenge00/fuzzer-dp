@@ -1,5 +1,9 @@
 #include "monitor.h"
 
+// TODO rewrite as object
+
+
+
 void monitor_esp(GuardedCircularBuffer<std::vector<std::uint8_t>> &buffer) {
     std::string server_address("0.0.0.0:50051");
     MonitorService service{buffer};

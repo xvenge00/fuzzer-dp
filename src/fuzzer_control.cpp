@@ -215,9 +215,7 @@ int fuzz(Config config) {
     }
 
     auto sent_frames = GuardedCircularBuffer(boost::circular_buffer<std::vector<std::uint8_t>>(config.frame_history_len));
-
-    // start monitor thread
-    std::thread th_monitor(monitor_esp, std::ref(sent_frames));
+    MonitorESP monitor{sent_frames};
 
     switch (config.fuzzer_type) {
     case PRB_REQ:
