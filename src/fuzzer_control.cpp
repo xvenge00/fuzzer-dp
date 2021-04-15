@@ -5,7 +5,7 @@
 #include <thread>
 #include <monitor/monitor.h>
 #include <fuzzer/probe_response.h>
-#include "fuzzer/frame_factory.h"
+#include <utils/progress_bar.h>
 #include "logging/guarded_circular_buffer.h"
 #include "fuzzer_control.h"
 #include "net80211.h"
@@ -18,7 +18,7 @@
 #include "fuzzer/authentication.h"
 #include "utils/frame.h"
 
-[[noreturn]] void fuzz_response(
+void fuzz_response(
     pcap *handle,
     ResponseFuzzer &fuzzer,
     const std::array<std::uint8_t, 6> &fuzzed_device_mac,
@@ -29,6 +29,8 @@
     struct pcap_pkthdr header{};
     auto frame_generator = fuzzer.get_mutated();
     auto frame_generator_it = frame_generator.begin();
+
+    unsigned fuzzed_inputs = 0;
 
     while(true) {
         if (setup != nullptr) {
@@ -46,12 +48,12 @@
                 auto *mac = get_prb_req_mac(ieee802_11_data, ieee802_11_size);
 
                 if (strncmp((const char *)mac, (const char*) fuzzed_device_mac.data(), 6) == 0) {
-                    print_mac(mac);
-
                     if (frame_generator_it != frame_generator.end()) {
-                        pcap_sendpacket(handle, frame_generator_it->data(), frame_generator_it->size());
+                        auto frame = *frame_generator_it;
+                        pcap_sendpacket(handle, frame.data(), frame.size());
                         sent_frames.push_back(*frame_generator_it);
                         ++frame_generator_it;
+                        ++fuzzed_inputs;
                     } else {
                         throw std::runtime_error("exhausted fuzz pool");
                     }
@@ -64,10 +66,17 @@
         if (teardown != nullptr) {
             teardown(handle);
         }
+
+        print_progress_bar(fuzzed_inputs, fuzzer.num_mutations());
+
+        // TODO fuj
+        if (fuzzed_inputs >= fuzzer.num_mutations()) {
+            break;
+        }
     }
 }
 
-[[noreturn]] void fuzz_push(
+void fuzz_push(
     pcap *handle,
     Fuzzer &fuzzer,
     const std::chrono::milliseconds &wait_duration,
@@ -78,6 +87,8 @@
 ) {
     auto frame_generator = fuzzer.get_mutated();
     auto frame_generator_it = frame_generator.begin();
+
+    unsigned fuzzed_inputs = 0;
 
     while (true) {
         if (setup != nullptr) {
@@ -92,6 +103,7 @@
 
             sent_frames.push_back(*frame_generator_it);
             ++frame_generator_it;
+            ++fuzzed_inputs;
         } else {
             throw std::runtime_error("exhausted fuzz pool");
         }
@@ -100,11 +112,18 @@
             teardown(handle);
         }
 
+        print_progress_bar(fuzzed_inputs, fuzzer.num_mutations());
+
+        // TODO fuj
+        if (fuzzed_inputs >= fuzzer.num_mutations()) {
+            break;
+        }
+
         std::this_thread::sleep_for(wait_duration);
     }
 }
 
-[[noreturn]] void fuzz_prb_resp(
+void fuzz_prb_resp(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzz_device_mac,
@@ -121,7 +140,7 @@
         nullptr);
 }
 
-[[noreturn]] void fuzz_beacon(
+void fuzz_beacon(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
     GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames,
@@ -142,7 +161,7 @@
     );
 }
 
-[[noreturn]] void fuzz_disass(
+void fuzz_disass(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzzed_device_mac,
@@ -163,7 +182,7 @@
     );
 }
 
-[[noreturn]] void fuzz_deauth(
+void fuzz_deauth(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzzed_device_mac,
@@ -185,7 +204,7 @@
 }
 
 // TODO config AuthenticationFuzzer
-[[noreturn]] void fuzz_auth(
+void fuzz_auth(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzzed_device_mac,
@@ -216,19 +235,21 @@ int fuzz(Config config) {
     }
 
     auto sent_frames = GuardedCircularBuffer(boost::circular_buffer<std::vector<std::uint8_t>>(config.frame_history_len));
-
-    // start monitor thread
-    std::thread th_monitor(monitor_esp, std::ref(sent_frames));
+    MonitorESP monitor{sent_frames};
 
     switch (config.fuzzer_type) {
     case PRB_REQ:
         fuzz_prb_resp(handle, config.src_mac, config.test_device_mac, sent_frames);
+        break;
     case BEACON:
         fuzz_beacon(handle, config.src_mac, sent_frames, std::chrono::milliseconds{10}, 5); // TODO pass from config
+        break;
     case DEAUTH:
         fuzz_deauth(handle, config.src_mac, config.test_device_mac, sent_frames, std::chrono::milliseconds{100}, 5);
+        break;
     case DISASS:
         fuzz_disass(handle, config.src_mac, config.test_device_mac, sent_frames, std::chrono::milliseconds{100}, 5);
+        break;
     }
 
     return 0;

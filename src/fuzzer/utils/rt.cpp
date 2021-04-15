@@ -1,12 +1,4 @@
-#include <cstring>
-#include "net80211.h"
-#include "frame_factory.h"
-#include "utils/hash.h"
-#include <cstdlib>
-#include <iostream>
-#include "utils/vector_appender.h"
-#include "fuzzer/tags/ssid.h"
-#include "rand.h"
+#include "rt.h"
 
 
 std::vector<std::uint8_t> get_base_rt() {
@@ -47,41 +39,3 @@ std::vector<std::uint8_t> get_base_rt() {
         0x00, 0x00
     };
 }
-
-//std::vector<std::uint8_t> SSIDFuzzer::next() {
-//    std::vector<std::uint8_t> len;
-//    std::vector<std::uint8_t> ssid;
-//
-//    if (curr_len > max_len) {
-//        curr_len = 0;
-//    } else {
-//        curr_len += 10;
-//    }
-//
-//    len = {static_cast<std::uint8_t>(curr_len)};
-//
-//    if (curr_gen_len > max_gen_len) {
-//        curr_gen_len = 0;
-//    } else {
-//        curr_gen_len += 10;
-//    }
-//
-//    ssid = rand_provider.get_vector(curr_len);
-//
-//
-//    return combine_vec({len, ssid});
-//}
-
-//std::uint8_t rand_byte() {
-//    return rand() % 0xFF;
-//}
-//
-//std::vector<std::uint8_t> rand_vec(size_t len) {
-//    std::vector<std::uint8_t> res{};
-//    for (size_t i=0; i < len; ++i) {
-//        res.emplace_back(rand_byte());
-//    }
-//
-//    return res;
-//}
-

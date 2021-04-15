@@ -1,7 +1,7 @@
 #include <utils/vector_appender.h>
 #include "authentication.h"
-#include "utils/int.h"
-#include "utils/string.h"
+#include "fuzzer/primitives/int.h"
+#include "fuzzer/primitives/string.h"
 
 AuthenticationFuzzer::AuthenticationFuzzer(
     mac_t source_mac,

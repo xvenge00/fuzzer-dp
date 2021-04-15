@@ -2,7 +2,7 @@
 #include "probe_response.h"
 #include "net80211.h"
 #include "utils/hash.h"
-#include "frame_factory.h"
+#include "fuzzer/utils/rt.h"
 
 ProbeResponseFuzzer::ProbeResponseFuzzer(
     mac_t source_mac,
