@@ -12,25 +12,31 @@ struct TaggedParams {
     virtual ~TaggedParams() = default;
 
     virtual generator<std::vector<std::uint8_t>> get_whole_param_set() {
-            // add valid ssid
-            std::vector<std::uint8_t> ssid {
-                0x00,   // ssid tag
-                0x07,   // len(FUZZING)
-                0x46, 0x55, 0x5a, 0x5a, 0x49, 0x4e, 0x47
-            };
+        // add valid ssid
+        std::vector<std::uint8_t> ssid {
+            0x00,   // ssid tag
+            0x07,   // len(FUZZING)
+            0x46, 0x55, 0x5a, 0x5a, 0x49, 0x4e, 0x47
+        };
 
-            // add supported rates
-            std::vector<std::uint8_t> supp_rates {
-                0x01,   // supported rates tag
-                0x08,   // len
-                0x82, 0x84, 0x8b, 0x96, 0x24, 0x30, 0x48, 0x6c
-            };
+        // add supported rates
+        std::vector<std::uint8_t> supp_rates {
+            0x01,   // supported rates tag
+            0x08,   // len
+            0x82, 0x84, 0x8b, 0x96, 0x24, 0x30, 0x48, 0x6c
+        };
 
-            // add fuzzed fields
-            std::vector<std::uint8_t> param_tag{tag};
-            for (auto &param: fuzzer.get_mutated()) {
-                co_yield combine_vec({ssid, supp_rates, param_tag, param});
-            }
+        std::vector<std::uint8_t> ds {
+            0x03,   // ds
+            0x01,   //len
+            0x02    // channel 2    // TODO load real channel
+        };
+
+        // add fuzzed fields
+        std::vector<std::uint8_t> param_tag{tag};
+        for (auto &param: fuzzer.get_mutated()) {
+            co_yield combine_vec({ssid, supp_rates, ds, param_tag, param});
+        }
     };
 
     const std::uint8_t tag;

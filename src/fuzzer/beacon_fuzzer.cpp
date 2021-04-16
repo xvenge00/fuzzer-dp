@@ -2,7 +2,6 @@
 #include "fuzzer/utils/rt.h"
 #include "utils/vector_appender.h"
 #include "net80211.h"
-#include "utils/hash.h"
 #include "beacon_fuzzer.h"
 
 BeaconFrameFuzzer::BeaconFrameFuzzer(
@@ -88,11 +87,7 @@ generator<fuzz_t> BeaconFrameFuzzer::get_mutated() {
 
     /* beacon content */
     for (auto &content: fuzz_content()) {
-        auto result = combine_vec({rt, ieee802_frame_, content});
-        uint32_t crc = crc32(result.size(), result.data());
-        std::copy((uint8_t *)&crc, (uint8_t *)(&crc) + 4, std::back_inserter(result));
-
-        co_yield result;
+        co_yield combine_vec({rt, ieee802_frame_, content});
     }
 }
 

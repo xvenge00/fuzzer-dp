@@ -3,7 +3,6 @@
 #include "net80211.h"
 #include "rand.h"
 #include "utils/vector_appender.h"
-#include "utils/hash.h"
 #include "utils/debug.h"
 #include "fuzzer/disass_fuzzer.h"
 
@@ -33,11 +32,7 @@ generator<fuzz_t> DisassociationFuzzer::get_mutated() {
     std::vector<std::uint8_t> ieee802_frame_ {(std::uint8_t *)&ieee802_frame, (std::uint8_t *)&ieee802_frame + sizeof(struct ieee80211_frame)};
 
     for (auto &content: get_mutated_content()) {
-        auto result = combine_vec({rt, ieee802_frame_, content});
-        uint32_t crc = crc32(result.size(), result.data());
-        std::copy((uint8_t *)&crc, (uint8_t *)(&crc) + 4, std::back_inserter(result));
-
-        co_yield result;
+        co_yield combine_vec({rt, ieee802_frame_, content});
     }
 }
 
