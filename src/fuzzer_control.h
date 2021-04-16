@@ -4,7 +4,7 @@
 #include <cinttypes>
 #include <pcap.h>
 #include <vector>
-#include "logging/guarded_circular_buffer.h"
+#include "monitor/logging/guarded_circular_buffer.h"
 #include "config/config.h"
 
 void fuzz_prb_resp(

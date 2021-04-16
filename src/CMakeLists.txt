@@ -2,16 +2,16 @@ set(SOURCES main.cpp)
 
 add_subdirectory(fuzzer)
 add_subdirectory(utils)
+add_subdirectory(monitor)
 
-add_library(libwifuzz fuzzer_control.cpp radiotap.cpp logging/logging.cpp monitor/monitor.cpp)
+add_library(libwifuzz fuzzer_control.cpp radiotap.cpp)
 
 target_link_libraries(libwifuzz
 					  ${PCAP_LIBRARY}
 					  frame_fuzzer
 					  fuzzer_utils
+					  fuzzer_monitor
 					  spdlog::spdlog
-					  gRPC::grpc++
-					  gRPC::grpc++_reflection
 					  fuzzer-protos
 					  ${YAML_CPP_LIBRARIES}
 					  )

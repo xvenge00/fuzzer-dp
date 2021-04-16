@@ -3,10 +3,10 @@
 #include <vector>
 #include <spdlog/spdlog.h>
 #include <thread>
-#include <monitor/monitor.h>
+#include <monitor/monitor_grpc.h>
 #include <fuzzer/probe_response.h>
 #include <utils/progress_bar.h>
-#include "logging/guarded_circular_buffer.h"
+#include "monitor/logging/guarded_circular_buffer.h"
 #include "fuzzer_control.h"
 #include "net80211.h"
 #include "utils/debug.h"
