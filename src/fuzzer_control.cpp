@@ -224,6 +224,383 @@ void fuzz_auth(
     );
 }
 
+#include "fuzzer/utils/rt.h"
+#include "utils/hash.h"
+
+fuzz_t get_prb_req(
+    const std::array<std::uint8_t, 6> &src_mac,
+    const std::array<std::uint8_t, 6> &fuzzed_device_mac
+) {
+    std::vector<std::uint8_t> rt = get_base_rt();
+
+    /* MAC header */
+    struct ieee80211_frame ieee802_frame{};
+
+    ieee802_frame.i_fc[0] = 0x50;     // probe response
+    ieee802_frame.i_fc[1] = 0x00;
+
+    ieee802_frame.i_dur[0] = 0x3a;    // copied from wireshark
+    ieee802_frame.i_dur[1] = 0x01;
+
+    memcpy(ieee802_frame.i_addr1, fuzzed_device_mac.data(), 6);   // copy destination mac
+    memcpy(ieee802_frame.i_addr2, src_mac.data(), 6);   // copy my mac
+    memcpy(ieee802_frame.i_addr3, src_mac.data(), 6);   // copy my mac
+
+    // idk why
+    ieee802_frame.i_seq[0] = 0x90;
+    ieee802_frame.i_seq[1] = 0x08;
+
+    std::vector<std::uint8_t> ieee802_frame_ {(std::uint8_t *)&ieee802_frame, (std::uint8_t *)&ieee802_frame + sizeof(struct ieee80211_frame)};
+
+    /* prb content */
+    std::vector<std::uint8_t> timestamp{0xa6, 0xee, 0x41, 0x98, 0xf8, 0xb1, 0x05, 0x00};
+    std::vector<std::uint8_t> beacon_interval{0x64, 0x00};
+//    std::vector<std::uint8_t> capability{0x01, 0x04};
+    fuzz_t capability{0x01, 0x15};
+
+    // add valid ssid
+    std::vector<std::uint8_t> ssid {
+        0x00,   // ssid tag
+        0x07,   // len(FUZZING)
+        0x46, 0x55, 0x5a, 0x5a, 0x49, 0x4e, 0x47
+    };
+
+    // add supported rates
+    std::vector<std::uint8_t> supp_rates {
+        0x01,   // supported rates tag
+        0x08,   // len
+        0x82, 0x84, 0x8b, 0x96, 0x24, 0x30, 0x48, 0x6c
+    };
+
+    fuzz_t ds {
+        0x03,   // ds
+        0x01,   //len
+        0x02    // channel 2
+    };
+
+    fuzz_t country {
+        0x07,   // country
+        0x06,   // len
+        0x53, 0x4b,     // code sk
+        0x20,   // env any
+        0x01,   // first channel
+        0x0d,   // num of channels
+        0x14    // max trans. power
+    };
+
+    fuzz_t power_constraints {
+        0x20,   // pow constr.
+        0x01,   // len
+        0x00    // 0
+    };
+
+    fuzz_t tpc {
+        0x23, 0x02, 0x11, 0x00
+    };
+
+    fuzz_t cf {
+        0x04, 0x06, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41
+    };
+
+    fuzz_t erp {
+        0x2a,
+        0x01,
+        0x00
+    };
+
+    fuzz_t extended_rates {
+        0x32, 0x04, 0x0c, 0x12, 0x18, 0x60
+    };
+
+    fuzz_t ht_cap {
+        0x2d,
+        0x1a,
+        0xad, 0x01, 0x1b, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    };
+
+    fuzz_t ht_info {
+        0x3d, 0x16, 0x02, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    };
+
+    fuzz_t ext_cap {
+        0x7f, 0x08, 0x04, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x40
+    };
+
+    auto result = combine_vec({
+        rt, ieee802_frame_, timestamp, beacon_interval, capability,
+        ssid,
+        supp_rates,
+        ds,
+        country,
+        power_constraints,
+        tpc,
+        erp,
+        extended_rates,
+        ht_cap,
+        ht_info,
+        ext_cap,
+//        cf,
+    });
+//    uint32_t crc = crc32(result.size(), result.data());
+//    std::copy((uint8_t *)&crc, (uint8_t *)(&crc) + 4, std::back_inserter(result));
+
+    return result;
+}
+
+fuzz_t get_auth_succ(
+    const std::array<std::uint8_t, 6> &src_mac,
+    const std::array<std::uint8_t, 6> &fuzzed_device_mac
+) {
+    std::vector<std::uint8_t> rt = get_base_rt();
+
+    /* MAC header */
+    struct ieee80211_frame ieee802_frame{};
+
+    ieee802_frame.i_fc[0] = 0xb0;     // probe response
+    ieee802_frame.i_fc[1] = 0x00;
+
+    ieee802_frame.i_dur[0] = 0x3a;    // copied from wireshark
+    ieee802_frame.i_dur[1] = 0x01;
+
+    memcpy(ieee802_frame.i_addr1, fuzzed_device_mac.data(), 6);   // copy destination mac
+    memcpy(ieee802_frame.i_addr2, src_mac.data(), 6);   // copy my mac
+    memcpy(ieee802_frame.i_addr3, src_mac.data(), 6);   // copy my mac
+
+    // idk why
+    ieee802_frame.i_seq[0] = 0x90;
+    ieee802_frame.i_seq[1] = 0x08;
+
+    std::vector<std::uint8_t> ieee802_frame_ {(std::uint8_t *)&ieee802_frame, (std::uint8_t *)&ieee802_frame + sizeof(struct ieee80211_frame)};
+
+    /* auth content */
+    fuzz_t content = {
+        0x00, 0x00, // open system
+        0x02, 0x00, // seq num TODO check if correct endianess
+        0x00, 0x00,  // successful
+    };
+
+
+    auto result = combine_vec({rt, ieee802_frame_, content});
+//    uint32_t crc = crc32(result.size(), result.data());
+//    std::copy((uint8_t *)&crc, (uint8_t *)(&crc) + 4, std::back_inserter(result));
+
+    return result;
+}
+
+fuzz_t get_cts(
+    mac_t target
+) {
+    std::vector<std::uint8_t> rt = get_base_rt();
+
+    fuzz_t cts{
+        0xc4,   // cts
+        0x00,   // flags
+        0x18, 0x0e, // duration
+//        0xe0, 0x3e, 0x44, 0x08, 0x98, 0x1a  // reciever addr
+    };
+
+    fuzz_t mac{target.data(), target.data() + target.size()};
+
+    return combine_vec({rt, cts, mac});
+}
+
+fuzz_t get_ass_succ(
+    mac_t src_mac,
+    mac_t target_mac
+) {
+    std::vector<std::uint8_t> rt = get_base_rt();
+
+    /* MAC header */
+    struct ieee80211_frame ieee802_frame{};
+
+    ieee802_frame.i_fc[0] = 0x10;     // ass_succ
+    ieee802_frame.i_fc[1] = 0x00;
+
+    ieee802_frame.i_dur[0] = 0x3a;    // copied from wireshark
+    ieee802_frame.i_dur[1] = 0x01;
+
+    memcpy(ieee802_frame.i_addr1, target_mac.data(), 6);   // copy destination mac
+    memcpy(ieee802_frame.i_addr2, src_mac.data(), 6);   // copy my mac
+    memcpy(ieee802_frame.i_addr3, src_mac.data(), 6);   // copy my mac
+
+    // idk why
+    ieee802_frame.i_seq[0] = 0x90;
+    ieee802_frame.i_seq[1] = 0x08;
+
+    std::vector<std::uint8_t> ieee802_frame_ {(std::uint8_t *)&ieee802_frame, (std::uint8_t *)&ieee802_frame + sizeof(struct ieee80211_frame)};
+
+    /* ass resp content */
+//    std::vector<std::uint8_t> timestamp{0xa6, 0xee, 0x41, 0x98, 0xf8, 0xb1, 0x05, 0x00};
+//    std::vector<std::uint8_t> beacon_interval{0x64, 0x00};
+//    std::vector<std::uint8_t> capability{0x01, 0x04};
+    fuzz_t capability{0x21, 0x04};
+    fuzz_t status_code{0x00, 0x00};
+    fuzz_t ass_id{0x01, 0xc0};
+
+    // add supported rates
+    std::vector<std::uint8_t> supp_rates {
+        0x01,   // supported rates tag
+        0x08,   // len
+        0x82, 0x84, 0x8b, 0x96, 0x24, 0x30, 0x48, 0x6c
+    };
+
+    fuzz_t ds {
+        0x03,   // ds
+        0x01,   //len
+        0x02    // channel 2
+    };
+
+    fuzz_t country {
+        0x07,   // country
+        0x06,   // len
+        0x53, 0x4b,     // code sk
+        0x20,   // env any
+        0x01,   // first channel
+        0x0d,   // num of channels
+        0x14    // max trans. power
+    };
+
+    fuzz_t power_constraints {
+        0x20,   // pow constr.
+        0x01,   // len
+        0x00    // 0
+    };
+
+    fuzz_t tpc {
+        0x23, 0x02, 0x11, 0x00
+    };
+
+    fuzz_t cf {
+        0x04, 0x06, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41
+    };
+
+    fuzz_t erp {
+        0x2a,
+        0x01,
+        0x00
+    };
+
+    fuzz_t extended_rates {
+        0x32, 0x04, 0x0c, 0x12, 0x18, 0x60
+    };
+
+    fuzz_t ht_cap {
+        0x2d,
+        0x1a,
+        0xad, 0x01, 0x1b, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    };
+
+    fuzz_t ht_info {
+        0x3d, 0x16, 0x02, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+    };
+
+    fuzz_t ext_cap {
+        0x7f, 0x08, 0x04, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x40
+    };
+
+    auto result = combine_vec({
+        rt, ieee802_frame_,
+        capability, status_code, ass_id,
+        supp_rates,
+        ds,
+        country,
+        power_constraints,
+        tpc,
+        erp,
+        extended_rates,
+        ht_cap,
+        ht_info,
+        ext_cap,
+    });
+
+    return result;
+}
+
+void fuzz_ass_resp(
+    pcap *handle,
+    const std::array<std::uint8_t, 6> &src_mac,
+    const std::array<std::uint8_t, 6> &fuzzed_device_mac,
+    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames
+) {
+    spdlog::info("fuzzing association response");
+
+    struct pcap_pkthdr header{};
+
+    // wait for prb req and send them
+    auto prb_resp = get_prb_req(src_mac, fuzzed_device_mac);
+//    while(true) {
+//        const u_char *packet = pcap_next(handle, &header);
+//
+//        size_t rt_size = get_radiotap_size(packet, header.caplen);
+//        const std::uint8_t *ieee802_11_data = packet + rt_size;
+//        const std::size_t ieee802_11_size = header.caplen - rt_size;
+//
+//        try{
+//            if (get_frame_type(ieee802_11_data, ieee802_11_size) == 0x40) { // prb request
+//                auto *mac = get_prb_req_mac(ieee802_11_data, ieee802_11_size);
+//
+//                if (strncmp((const char *)mac, (const char*) fuzzed_device_mac.data(), 6) == 0) {
+//                    for (int i = 0; i < 500; ++i) {
+//                        pcap_sendpacket(handle, prb_resp.data(), prb_resp.size());
+//                        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+//                    }
+//                    break;
+//                }
+//            }
+//        } catch (std::runtime_error &e) {
+////            spdlog::warn("Caught exception.");
+//        }
+//    }
+
+
+//    auto fuzzer = AssociationRespFuzzer{src_mac, fuzzed_device_mac};
+//    auto frame_generator = fuzzer.get_mutated();
+//    auto frame_generator_it = frame_generator.begin();
+
+    while(true) {
+        const u_char *packet = pcap_next(handle, &header);
+
+        size_t rt_size = get_radiotap_size(packet, header.caplen);
+        const std::uint8_t *ieee802_11_data = packet + rt_size;
+        const std::size_t ieee802_11_size = header.caplen - rt_size;
+
+        try{
+            auto *mac = get_prb_req_mac(ieee802_11_data, ieee802_11_size);
+            if (strncmp((const char *)mac, (const char*) fuzzed_device_mac.data(), 6) == 0) {
+                if (get_frame_type(ieee802_11_data, ieee802_11_size) == 0x40) { // prb request
+                    for (int i = 0; i < 15; ++i) {
+                        pcap_sendpacket(handle, prb_resp.data(), prb_resp.size());
+                    }
+                    spdlog::info("sent probe responses");
+                }
+                if (get_frame_type(ieee802_11_data, ieee802_11_size) == 0xb0) { // auth packet 1
+                    auto auth_succ = get_auth_succ(src_mac, fuzzed_device_mac);
+                    for (int i = 0; i < 1; ++i) {
+                        pcap_sendpacket(handle, auth_succ.data(), auth_succ.size());
+                    }
+                    spdlog::info("auth");
+                }
+                if (get_frame_type(ieee802_11_data, ieee802_11_size) == (0xb0 & 0x4)) { // rts
+                    auto cts = get_cts(fuzzed_device_mac);
+                    for (int i = 0; i < 1; ++i) {
+                        pcap_sendpacket(handle, cts.data(), cts.size());
+                    }
+                    spdlog::info("cts");
+                }
+                if (get_frame_type(ieee802_11_data, ieee802_11_size) == (0x00)) { // ass req
+                    auto ass_resp = get_ass_succ(src_mac, fuzzed_device_mac);
+                    for (int i = 0; i < 1; ++i) {
+                        pcap_sendpacket(handle, ass_resp.data(), ass_resp.size());
+                    }
+                    spdlog::info("ass resp");
+                }
+            }
+        } catch (std::runtime_error &e) {
+//            spdlog::warn("Caught exception. {}", e.what());
+        }
+    }
+}
+
 int fuzz(Config config) {
     char errbuf[PCAP_ERRBUF_SIZE] = {}; // for errors (required)
 
@@ -251,6 +628,10 @@ int fuzz(Config config) {
         break;
     case DISASS:
         fuzz_disass(handle, config.src_mac, config.test_device_mac, sent_frames, std::chrono::milliseconds{100}, 5);
+        break;
+    case ASS_RESP:
+        // TODO
+        fuzz_ass_resp(handle, config.src_mac, config.test_device_mac, sent_frames);
         break;
     }
 

@@ -9,6 +9,7 @@ enum FuzzerType {
     DISASS,
     DEAUTH,
     AUTH,
+    ASS_RESP,
     BEACON,
 };
 

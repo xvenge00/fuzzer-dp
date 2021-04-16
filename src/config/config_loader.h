@@ -35,6 +35,8 @@ FuzzerType parse_fuzzer_type(std::string const& in ) {
         return AUTH;
     } else if (in == "beacon") {
         return BEACON;
+    } else if (in == "ass_resp") {
+        return ASS_RESP;
     } else {
         throw std::runtime_error(in + std::string(" is not valid fuzzer type"));
     }
