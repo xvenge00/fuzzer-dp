@@ -203,7 +203,6 @@ void fuzz_deauth(
     );
 }
 
-// TODO config AuthenticationFuzzer
 void fuzz_auth(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
@@ -238,7 +237,7 @@ int fuzz(Config config) {
     MonitorESP monitor{sent_frames};
 
     switch (config.fuzzer_type) {
-    case PRB_REQ:
+    case PRB_RESP:
         fuzz_prb_resp(handle, config.src_mac, config.test_device_mac, sent_frames);
         break;
     case BEACON:
@@ -246,6 +245,9 @@ int fuzz(Config config) {
         break;
     case DEAUTH:
         fuzz_deauth(handle, config.src_mac, config.test_device_mac, sent_frames, std::chrono::milliseconds{100}, 5);
+        break;
+    case AUTH:
+        fuzz_auth(handle, config.src_mac, config.test_device_mac, sent_frames, std::chrono::milliseconds{100}, 5);
         break;
     case DISASS:
         fuzz_disass(handle, config.src_mac, config.test_device_mac, sent_frames, std::chrono::milliseconds{100}, 5);

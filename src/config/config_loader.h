@@ -25,12 +25,14 @@ std::array<uint8_t, 6> parse_mac(std::string const& in) {
 }
 
 FuzzerType parse_fuzzer_type(std::string const& in ) {
-    if (in == "probe request") {
-        return PRB_REQ;
+    if (in == "prb_resp") {
+        return PRB_RESP;
     } else if (in == "disassociation") {
         return DISASS;
     } else if (in == "deauthentication") {
         return DEAUTH;
+    } else if (in == "auth") {
+        return AUTH;
     } else if (in == "beacon") {
         return BEACON;
     } else {
