@@ -1,5 +1,6 @@
 ---
 fuzzer_type: "beacon"
+#fuzzer_type: "ass_resp"
 interface: wlp7s0f4u2u2
 random_seed: 420
 src_mac: "8c:dc:02:d7:35:2b"  # zte router
