@@ -1,7 +1,6 @@
 #include <cstring>
 #include "probe_response.h"
 #include "net80211.h"
-#include "utils/hash.h"
 #include "fuzzer/utils/rt.h"
 
 ProbeResponseFuzzer::ProbeResponseFuzzer(
@@ -43,11 +42,7 @@ generator<fuzz_t> ProbeResponseFuzzer::get_mutated() {
 
     /* prb content */
     for (auto &content: fuzz_prb_req_content()) {
-        auto result = combine_vec({rt, ieee802_frame_, content});
-        uint32_t crc = crc32(result.size(), result.data());
-        std::copy((uint8_t *)&crc, (uint8_t *)(&crc) + 4, std::back_inserter(result));
-
-        co_yield result;
+        co_yield combine_vec({rt, ieee802_frame_, content});
     }
 }
 

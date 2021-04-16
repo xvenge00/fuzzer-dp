@@ -5,7 +5,6 @@
 #include "authentication.h"
 #include "fuzzer/primitives/int.h"
 #include "fuzzer/primitives/string.h"
-#include "utils/hash.h"
 
 AuthenticationFuzzer::AuthenticationFuzzer(
     mac_t source_mac,
@@ -63,11 +62,7 @@ generator<fuzz_t> AuthenticationFuzzer::get_mutated() {
                 auto codes = combine_vec_uint16({alg_num, 0, status_code});
                 auto str_vec = std::vector<uint8_t>{(uint8_t) str.length()};
 
-                auto result = combine_vec({rt, ieee802_frame_, codes, str_vec});
-                uint32_t crc = crc32(result.size(), result.data());
-                std::copy((uint8_t *)&crc, (uint8_t *)(&crc) + 4, std::back_inserter(result));
-
-                co_yield result;
+                co_yield combine_vec({rt, ieee802_frame_, codes, str_vec});
             }
 
             // TODO fuzz long strings
