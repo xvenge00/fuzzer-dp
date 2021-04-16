@@ -233,24 +233,23 @@ int fuzz(Config config) {
         return 1;
     }
 
-    auto sent_frames = GuardedCircularBuffer(boost::circular_buffer<std::vector<std::uint8_t>>(config.frame_history_len));
-    MonitorESP monitor{sent_frames};
+    MonitorESP monitor{config.frame_history_len};
 
     switch (config.fuzzer_type) {
     case PRB_RESP:
-        fuzz_prb_resp(handle, config.src_mac, config.test_device_mac, sent_frames);
+        fuzz_prb_resp(handle, config.src_mac, config.test_device_mac, monitor.frame_buff());
         break;
     case BEACON:
-        fuzz_beacon(handle, config.src_mac, sent_frames, std::chrono::milliseconds{10}, 5); // TODO pass from config
+        fuzz_beacon(handle, config.src_mac, monitor.frame_buff(), std::chrono::milliseconds{10}, 5); // TODO pass from config
         break;
     case DEAUTH:
-        fuzz_deauth(handle, config.src_mac, config.test_device_mac, sent_frames, std::chrono::milliseconds{100}, 5);
+        fuzz_deauth(handle, config.src_mac, config.test_device_mac, monitor.frame_buff(), std::chrono::milliseconds{100}, 5);
         break;
     case AUTH:
-        fuzz_auth(handle, config.src_mac, config.test_device_mac, sent_frames, std::chrono::milliseconds{100}, 5);
+        fuzz_auth(handle, config.src_mac, config.test_device_mac, monitor.frame_buff(), std::chrono::milliseconds{100}, 5);
         break;
     case DISASS:
-        fuzz_disass(handle, config.src_mac, config.test_device_mac, sent_frames, std::chrono::milliseconds{100}, 5);
+        fuzz_disass(handle, config.src_mac, config.test_device_mac, monitor.frame_buff(), std::chrono::milliseconds{100}, 5);
         break;
     }
 

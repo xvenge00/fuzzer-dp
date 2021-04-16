@@ -8,22 +8,25 @@
 #include "monitor.grpc.pb.h"
 #include "logging/guarded_circular_buffer.h"
 
-struct MonitorService: public monitor::EspMonitor::Service {
-    explicit MonitorService(GuardedCircularBuffer<std::vector<std::uint8_t>> &frame_buff);
+struct MonitorGrpcService: public monitor::EspMonitor::Service {
+    Monitor &monitor_ref;
 
-    ::grpc::Status Notify(::grpc::ServerContext *context, const ::google::protobuf::Empty *request, ::google::protobuf::Empty *response) override;
+    explicit MonitorGrpcService(Monitor &monitor_ref);
 
-private:
-    GuardedCircularBuffer<std::vector<std::uint8_t>> &frame_buff_;
+    ::grpc::Status Notify(
+        ::grpc::ServerContext *context,
+        const ::google::protobuf::Empty *request,
+        ::google::protobuf::Empty *response
+    ) override;
 };
 
 struct MonitorESP: public Monitor {
     std::string server_address;
-    MonitorService service;
+    MonitorGrpcService service;
     std::unique_ptr<grpc::Server> server;
     std::unique_ptr<std::thread> th_monitor;
 
-    explicit MonitorESP(GuardedCircularBuffer<std::vector<std::uint8_t>> &buffer);
+    explicit MonitorESP(size_t frame_buff_size);
 
     ~MonitorESP() override;
 };
