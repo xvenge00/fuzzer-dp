@@ -11,6 +11,8 @@ void Monitor::dump_frames() {
     std::cout << "==============================" << std::endl;
 }
 
+void Monitor::notify() {}
+
 GuardedCircularBuffer<std::vector<std::uint8_t>> &Monitor::frame_buff() {
     return frame_buff_;
 }

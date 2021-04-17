@@ -7,6 +7,7 @@
 #include <thread>
 #include <exception>
 #include <utility>
+#include <condition_variable>
 
 class Watchdog
 {

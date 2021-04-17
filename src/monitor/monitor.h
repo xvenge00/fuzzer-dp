@@ -9,6 +9,8 @@ struct Monitor {
 
     void dump_frames();
 
+    virtual void notify();
+
     virtual ~Monitor() = default;
 
     GuardedCircularBuffer<std::vector<std::uint8_t>> &frame_buff();

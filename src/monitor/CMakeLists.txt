@@ -1,4 +1,4 @@
-add_library(fuzzer_monitor monitor_grpc.cpp logging/logging.cpp monitor.cpp)
+add_library(fuzzer_monitor monitor_grpc.cpp logging/logging.cpp monitor.cpp monitor_passive.cpp)
 
 target_link_libraries(
 		fuzzer_monitor
