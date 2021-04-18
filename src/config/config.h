@@ -3,6 +3,7 @@
 
 #include <string>
 #include <array>
+#include <chrono>
 
 enum FuzzerType {
     PRB_RESP,
@@ -12,13 +13,27 @@ enum FuzzerType {
     BEACON,
 };
 
+enum MonitorType {
+    GRPC,
+    PASSIVE,
+    SNIFFING,
+};
+
+struct ConfigMonitor {
+    unsigned frame_history_len;
+    MonitorType type;
+    std::string server_address;
+    std::chrono::seconds timeout;
+    std::string interface;
+};
+
 struct Config {
     std::string interface;
     unsigned random_seed;
     std::array<std::uint8_t, 6> src_mac;
     std::array<std::uint8_t, 6> test_device_mac;
     FuzzerType fuzzer_type;
-    unsigned frame_history_len;
+    ConfigMonitor monitor;
 };
 
 #endif //CPP_CONFIG_H

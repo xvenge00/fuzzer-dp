@@ -16,7 +16,13 @@ int main(int argc, char **argv)
     }
     std::string config_file = argv[1];
 
-    auto config = load_config({config_file});
+    Config config;
+    try {
+        config = load_config({config_file});
+    } catch (YAML::Exception &e) {
+        std::cout << "invalid config\n";
+        return 1;
+    }
 
     return fuzz(config);
 }

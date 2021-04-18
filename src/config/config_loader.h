@@ -40,6 +40,36 @@ FuzzerType parse_fuzzer_type(std::string const& in ) {
     }
 }
 
+std::chrono::seconds parse_duration(const std::string &d) {
+    return std::chrono::seconds(std::stoi(d));
+}
+
+ConfigMonitor parse_monitor_config(const YAML::Node &monitor_node) {
+    auto type = monitor_node["type"].as<std::string>();
+    if (type == "grpc") {
+        return {
+            .frame_history_len = monitor_node["frame_history_len"].as<unsigned >(),
+            .type = GRPC,
+            .server_address = monitor_node["server_address"].as<std::string>()
+        };
+    } else if (type == "passive") {
+        return {
+            .frame_history_len = monitor_node["frame_history_len"].as<unsigned >(),
+            .type = PASSIVE,
+            .timeout = parse_duration(monitor_node["timeout_s"].as<std::string>()),
+        };
+    } else if (type == "sniffing") {
+        return {
+            .frame_history_len = monitor_node["frame_history_len"].as<unsigned >(),
+            .type = SNIFFING,
+            .timeout = parse_duration(monitor_node["timeout_s"].as<std::string>()),
+            .interface = monitor_node["interface"].as<std::string>(),
+        };
+    } else {
+        throw std::logic_error("invalid monitor type");
+    }
+}
+
 Config load_config(const std::filesystem::path &config_file) {
     auto config_node = YAML::LoadFile(config_file);
     return {
@@ -48,7 +78,7 @@ Config load_config(const std::filesystem::path &config_file) {
         .src_mac = parse_mac(config_node["src_mac"].as<std::string>()),
         .test_device_mac = parse_mac(config_node["test_device_mac"].as<std::string>()),
         .fuzzer_type = parse_fuzzer_type(config_node["fuzzer_type"].as<std::string>()),
-        .frame_history_len = config_node["frame_history_len"].as<unsigned >()
+        .monitor = parse_monitor_config(config_node["monitor"]),
     };
 }
 
