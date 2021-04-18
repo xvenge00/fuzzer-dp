@@ -20,15 +20,15 @@ struct MonitorGrpcService: public monitor::EspMonitor::Service {
     ) override;
 };
 
-struct MonitorESP: public Monitor {
+struct MonitorGRPC: public Monitor {
     std::string server_address;
     MonitorGrpcService service;
     std::unique_ptr<grpc::Server> server;
     std::unique_ptr<std::thread> th_monitor;
 
-    explicit MonitorESP(size_t frame_buff_size);
+    explicit MonitorGRPC(size_t frame_buff_size, const std::string &server_addr = "0.0.0.0:50051");
 
-    ~MonitorESP() override;
+    ~MonitorGRPC() override;
 };
 
 #endif //CPP_MONITOR_GRPC_H

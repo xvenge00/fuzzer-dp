@@ -16,9 +16,9 @@ MonitorGrpcService::MonitorGrpcService(
 }
 
 
-MonitorESP::MonitorESP(size_t frame_buff_size):
+MonitorGRPC::MonitorGRPC(size_t frame_buff_size, const std::string &server_address):
     Monitor(frame_buff_size),
-    server_address("0.0.0.0:50051"),    // TODO address
+    server_address(server_address),
     service(*this)
 {
     grpc::ServerBuilder builder;
@@ -31,7 +31,7 @@ MonitorESP::MonitorESP(size_t frame_buff_size):
     th_monitor = std::make_unique<std::thread>(&grpc::Server::Wait, server.get());
 }
 
-MonitorESP::~MonitorESP() {
+MonitorGRPC::~MonitorGRPC() {
     server->Shutdown();
     th_monitor->join();
 }

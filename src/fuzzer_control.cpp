@@ -231,7 +231,7 @@ void fuzz_auth(
 std::unique_ptr<Monitor> build_monitor(const ConfigMonitor &config, mac_t target) {
     switch (config.type) {
     case GRPC:
-        return std::make_unique<MonitorESP>(config.frame_history_len);   // TODO pass server_addr
+        return std::make_unique<MonitorGRPC>(config.frame_history_len, config.server_address);
     case PASSIVE:
         return std::make_unique<MonitorPassive>(config.frame_history_len, config.timeout);
     case SNIFFING:
@@ -241,7 +241,7 @@ std::unique_ptr<Monitor> build_monitor(const ConfigMonitor &config, mac_t target
     }
 }
 
-int fuzz(Config config) {
+int fuzz(const Config &config) {
     char errbuf[PCAP_ERRBUF_SIZE] = {}; // for errors (required)
 
     auto *handle = pcap_open_live(config.interface.c_str(), BUFSIZ/10, 0, 1, errbuf);
