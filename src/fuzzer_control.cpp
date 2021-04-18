@@ -6,6 +6,7 @@
 #include <monitor/monitor_grpc.h>
 #include <fuzzer/probe_response.h>
 #include <utils/progress_bar.h>
+#include <monitor/sniffing_monitor.h>
 #include "monitor/logging/guarded_circular_buffer.h"
 #include "fuzzer_control.h"
 #include "net80211.h"
@@ -237,7 +238,8 @@ int fuzz(Config config) {
     }
 
 //    MonitorESP monitor{config.frame_history_len};
-    MonitorPassive monitor{config.frame_history_len, std::chrono::seconds(10)};
+//    MonitorPassive monitor{config.frame_history_len, std::chrono::seconds(10)};
+    SniffingMonitor monitor{config.frame_history_len, std::chrono::seconds(10), "wlp3s0", config.test_device_mac};
 
     switch (config.fuzzer_type) {
     case PRB_RESP:
