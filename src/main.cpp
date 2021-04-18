@@ -4,13 +4,17 @@
 #include "fuzzer_control.h"
 #include "config/config_loader.h"
 
+void print_usage() {
+    std::cout << "usage: wi_fuzz config.yaml\n";
+}
+
 int main(int argc, char **argv)
 {
-    if (argc < 2) {
-        std::cout << "nemas tam config\n";
+    if (argc != 2) {
+        print_usage();
         return 1;
     }
-    std::string config_file = argv[1];    // "wlp3s0"
+    std::string config_file = argv[1];
 
     auto config = load_config({config_file});
 
