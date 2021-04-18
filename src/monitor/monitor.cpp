@@ -1,20 +1,18 @@
+#include <iostream>
 #include "monitor.h"
+#include "logging/logging.h"
 
-// TODO rewrite as object
+Monitor::Monitor(size_t frame_buff_size):
+    frame_buff_(GuardedCircularBuffer(boost::circular_buffer<std::vector<std::uint8_t>>(frame_buff_size))) {}
 
+void Monitor::dump_frames() {
+    // TODO to file
+    ::dump_frames(frame_buff_.dump());
+    std::cout << "==============================" << std::endl;
+}
 
+void Monitor::notify() {}
 
-void monitor_esp(GuardedCircularBuffer<std::vector<std::uint8_t>> &buffer) {
-    std::string server_address("0.0.0.0:50051");
-    MonitorService service{buffer};
-
-    grpc::ServerBuilder builder;
-    builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-    builder.RegisterService(&service);
-
-
-    std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
-    std::cout << "Server listening on " << server_address << std::endl;
-
-    server->Wait();
+GuardedCircularBuffer<std::vector<std::uint8_t>> &Monitor::frame_buff() {
+    return frame_buff_;
 }

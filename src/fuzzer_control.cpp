@@ -3,10 +3,11 @@
 #include <vector>
 #include <spdlog/spdlog.h>
 #include <thread>
-#include <monitor/monitor.h>
+#include <monitor/monitor_grpc.h>
 #include <fuzzer/probe_response.h>
 #include <utils/progress_bar.h>
-#include "logging/guarded_circular_buffer.h"
+#include <monitor/sniffing_monitor.h>
+#include "monitor/logging/guarded_circular_buffer.h"
 #include "fuzzer_control.h"
 #include "net80211.h"
 #include "utils/debug.h"
@@ -17,12 +18,13 @@
 #include "fuzzer/deauth_fuzzer.h"
 #include "fuzzer/authentication.h"
 #include "utils/frame.h"
+#include "monitor/monitor_passive.h"
 
 void fuzz_response(
     pcap *handle,
     ResponseFuzzer &fuzzer,
     const std::array<std::uint8_t, 6> &fuzzed_device_mac,
-    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames,
+    Monitor &monitor,
     void (* setup) (pcap *),
     void (* teardown) (pcap *)
 ) {
@@ -44,23 +46,25 @@ void fuzz_response(
         const std::size_t ieee802_11_size = header.caplen - rt_size;
 
         try{
-            if (get_frame_type(ieee802_11_data, ieee802_11_size) == fuzzer.responds_to_subtype) {
-                auto *mac = get_prb_req_mac(ieee802_11_data, ieee802_11_size);
-
-                if (strncmp((const char *)mac, (const char*) fuzzed_device_mac.data(), 6) == 0) {
+            // TODO rename get_prb_req_mac
+            auto *mac = get_prb_req_mac(ieee802_11_data, ieee802_11_size);
+            if (strncmp((const char *)mac, (const char*) fuzzed_device_mac.data(), 6) == 0) {
+                if (get_frame_type(ieee802_11_data, ieee802_11_size) == fuzzer.responds_to_subtype) {
                     if (frame_generator_it != frame_generator.end()) {
                         auto frame = *frame_generator_it;
                         pcap_sendpacket(handle, frame.data(), frame.size());
-                        sent_frames.push_back(*frame_generator_it);
+                        monitor.frame_buff().push_back(*frame_generator_it);
                         ++frame_generator_it;
                         ++fuzzed_inputs;
                     } else {
                         throw std::runtime_error("exhausted fuzz pool");
                     }
                 }
+
+                monitor.notify();
             }
         } catch (std::runtime_error &e) {
-            spdlog::warn("Caught exception.");
+//            spdlog::warn("Caught exception.");
         }
 
         if (teardown != nullptr) {
@@ -81,7 +85,7 @@ void fuzz_push(
     Fuzzer &fuzzer,
     const std::chrono::milliseconds &wait_duration,
     unsigned packets_resend_count,
-    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames,
+    Monitor &monitor,
     void (* setup) (pcap *),
     void (* teardown) (pcap *)
 ) {
@@ -101,7 +105,7 @@ void fuzz_push(
                 pcap_sendpacket(handle, frame_generator_it->data(), frame_generator_it->size());
             }
 
-            sent_frames.push_back(*frame_generator_it);
+            monitor.frame_buff().push_back(*frame_generator_it);
             ++frame_generator_it;
             ++fuzzed_inputs;
         } else {
@@ -127,7 +131,7 @@ void fuzz_prb_resp(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzz_device_mac,
-    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames
+    Monitor &monitor
 ) {
     spdlog::info("fuzzing probe response");
     ProbeResponseFuzzer fuzzer{src_mac, fuzz_device_mac};
@@ -135,7 +139,7 @@ void fuzz_prb_resp(
         handle,
         fuzzer,
         fuzz_device_mac,
-        sent_frames,
+        monitor,
         nullptr,
         nullptr);
 }
@@ -143,7 +147,7 @@ void fuzz_prb_resp(
 void fuzz_beacon(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
-    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames,
+    Monitor &monitor,
     const std::chrono::milliseconds &wait_duration,
     unsigned packets_resend_count
 ) {
@@ -155,7 +159,7 @@ void fuzz_beacon(
         fuzzer,
         wait_duration,
         packets_resend_count,
-        sent_frames,
+        monitor,
         nullptr,
         nullptr
     );
@@ -165,7 +169,7 @@ void fuzz_disass(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzzed_device_mac,
-    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames,
+    Monitor &monitor,
     const std::chrono::milliseconds &wait_duration,
     unsigned packets_resend_count
 ) {
@@ -176,7 +180,7 @@ void fuzz_disass(
         fuzzer,
         wait_duration,
         packets_resend_count,
-        sent_frames,
+        monitor,
         nullptr,
         nullptr
     );
@@ -186,7 +190,7 @@ void fuzz_deauth(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzzed_device_mac,
-    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames,
+    Monitor &monitor,
     const std::chrono::milliseconds &wait_duration,
     unsigned packets_resend_count
 ) {
@@ -197,7 +201,7 @@ void fuzz_deauth(
         fuzzer,
         wait_duration,
         packets_resend_count,
-        sent_frames,
+        monitor,
         nullptr,
         nullptr
     );
@@ -207,7 +211,7 @@ void fuzz_auth(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzzed_device_mac,
-    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames,
+    Monitor &monitor,
     const std::chrono::milliseconds &wait_duration,
     unsigned packets_resend_count
 ) {
@@ -218,7 +222,7 @@ void fuzz_auth(
         fuzzer,
         wait_duration,
         packets_resend_count,
-        sent_frames,
+        monitor,
         nullptr,
         nullptr
     );
@@ -233,24 +237,25 @@ int fuzz(Config config) {
         return 1;
     }
 
-    auto sent_frames = GuardedCircularBuffer(boost::circular_buffer<std::vector<std::uint8_t>>(config.frame_history_len));
-    MonitorESP monitor{sent_frames};
+//    MonitorESP monitor{config.frame_history_len};
+//    MonitorPassive monitor{config.frame_history_len, std::chrono::seconds(10)};
+    SniffingMonitor monitor{config.frame_history_len, std::chrono::seconds(10), "wlp3s0", config.test_device_mac};
 
     switch (config.fuzzer_type) {
     case PRB_RESP:
-        fuzz_prb_resp(handle, config.src_mac, config.test_device_mac, sent_frames);
+        fuzz_prb_resp(handle, config.src_mac, config.test_device_mac, monitor);
         break;
     case BEACON:
-        fuzz_beacon(handle, config.src_mac, sent_frames, std::chrono::milliseconds{10}, 5); // TODO pass from config
+        fuzz_beacon(handle, config.src_mac, monitor, std::chrono::milliseconds{10}, 5); // TODO pass from config
         break;
     case DEAUTH:
-        fuzz_deauth(handle, config.src_mac, config.test_device_mac, sent_frames, std::chrono::milliseconds{100}, 5);
+        fuzz_deauth(handle, config.src_mac, config.test_device_mac, monitor, std::chrono::milliseconds{100}, 5);
         break;
     case AUTH:
-        fuzz_auth(handle, config.src_mac, config.test_device_mac, sent_frames, std::chrono::milliseconds{100}, 5);
+        fuzz_auth(handle, config.src_mac, config.test_device_mac, monitor, std::chrono::milliseconds{100}, 5);
         break;
     case DISASS:
-        fuzz_disass(handle, config.src_mac, config.test_device_mac, sent_frames, std::chrono::milliseconds{100}, 5);
+        fuzz_disass(handle, config.src_mac, config.test_device_mac, monitor, std::chrono::milliseconds{100}, 5);
         break;
     }
 

@@ -4,20 +4,20 @@
 #include <cinttypes>
 #include <pcap.h>
 #include <vector>
-#include "logging/guarded_circular_buffer.h"
+#include "monitor/monitor.h"
 #include "config/config.h"
 
 void fuzz_prb_resp(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzz_device_mac,
-    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames
+    Monitor &monitor
 );
 
 void fuzz_beacon(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
-    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames,
+    Monitor &monitor,
     const std::chrono::milliseconds &wait_duration,
     unsigned packets_resend_count
 );
@@ -26,7 +26,7 @@ void fuzz_disass(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzzed_device_mac,
-    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames,
+    Monitor &monitor,
     const std::chrono::milliseconds &wait_duration,
     unsigned packets_resend_count
 );
@@ -35,7 +35,7 @@ void fuzz_deauth(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzzed_device_mac,
-    GuardedCircularBuffer<std::vector<std::uint8_t>> &sent_frames,
+    Monitor &monitor,
     const std::chrono::milliseconds &wait_duration,
     unsigned packets_resend_count
 );
