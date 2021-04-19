@@ -27,6 +27,11 @@ struct ConfigMonitor {
     std::string interface;
 };
 
+struct ConfigController {
+    std::chrono::milliseconds wait_duration;
+    unsigned packet_resend_count;
+};
+
 struct Config {
     std::string interface;
     unsigned random_seed;
@@ -34,6 +39,7 @@ struct Config {
     std::array<std::uint8_t, 6> test_device_mac;
     FuzzerType fuzzer_type;
     ConfigMonitor monitor;
+    ConfigController controller;
 };
 
 #endif //CPP_CONFIG_H

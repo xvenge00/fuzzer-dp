@@ -257,16 +257,39 @@ int fuzz(const Config &config) {
         fuzz_prb_resp(handle, config.src_mac, config.test_device_mac, *monitor);
         break;
     case BEACON:
-        fuzz_beacon(handle, config.src_mac, *monitor, std::chrono::milliseconds{10}, 5); // TODO pass from config
+        fuzz_beacon(
+            handle,
+            config.src_mac,
+            *monitor,
+            config.controller.wait_duration,
+            config.controller.packet_resend_count);
         break;
     case DEAUTH:
-        fuzz_deauth(handle, config.src_mac, config.test_device_mac, *monitor, std::chrono::milliseconds{100}, 5);
+        fuzz_deauth(
+            handle,
+            config.src_mac,
+            config.test_device_mac,
+            *monitor,
+            config.controller.wait_duration,
+            config.controller.packet_resend_count);
         break;
     case AUTH:
-        fuzz_auth(handle, config.src_mac, config.test_device_mac, *monitor, std::chrono::milliseconds{100}, 5);
+        fuzz_auth(
+            handle,
+            config.src_mac,
+            config.test_device_mac,
+            *monitor,
+            config.controller.wait_duration,
+            config.controller.packet_resend_count);
         break;
     case DISASS:
-        fuzz_disass(handle, config.src_mac, config.test_device_mac, *monitor, std::chrono::milliseconds{100}, 5);
+        fuzz_disass(
+            handle,
+            config.src_mac,
+            config.test_device_mac,
+            *monitor,
+            config.controller.wait_duration,
+            config.controller.packet_resend_count);
         break;
     }
 
