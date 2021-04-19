@@ -3,7 +3,6 @@
 #include <vector>
 #include <spdlog/spdlog.h>
 #include <thread>
-#include <monitor/monitor_grpc.h>
 #include <fuzzer/probe_response.h>
 #include <utils/progress_bar.h>
 #include <monitor/sniffing_monitor.h>
@@ -19,6 +18,10 @@
 #include "fuzzer/authentication.h"
 #include "utils/frame.h"
 #include "monitor/monitor_passive.h"
+
+#ifdef GRPC_ENABLED
+#include "monitor/monitor_grpc.h"
+#endif
 
 void fuzz_response(
     pcap *handle,
@@ -230,11 +233,13 @@ void fuzz_auth(
 
 std::unique_ptr<Monitor> build_monitor(const ConfigMonitor &config, mac_t target) {
     switch (config.type) {
+#ifdef GRPC_ENABLED
     case GRPC:
         return std::make_unique<MonitorGRPC>(
             config.frame_history_len,
             config.dump_file,
             config.server_address);
+#endif
     case PASSIVE:
         return std::make_unique<MonitorPassive>(
             config.frame_history_len,

@@ -12,16 +12,22 @@ target_link_libraries(libwifuzz
 					  fuzzer_utils
 					  fuzzer_monitor
 					  spdlog::spdlog
-					  fuzzer-protos
 					  ${YAML_CPP_LIBRARIES}
 					  )
 
-target_include_directories(libwifuzz
-						   PRIVATE ${CMAKE_SOURCE_DIR}/src
-						   PRIVATE ${CMAKE_SOURCE_DIR}/thirdparty
-						   PRIVATE "${PROJECT_BINARY_DIR}/proto"
-						   PRIVATE "${YAML_CPP_INCLUDE_DIRS}"
-						   )
+set(WIFUZZ_INCLUDE_DIRS
+	PRIVATE ${CMAKE_SOURCE_DIR}/src
+	PRIVATE ${CMAKE_SOURCE_DIR}/thirdparty
+	PRIVATE "${YAML_CPP_INCLUDE_DIRS}"
+)
+
+if (GRPC_ENABLED)
+	set(WIFUZZ_INCLUDE_DIRS ${WIFUZZ_INCLUDE_DIRS}
+		PRIVATE "${PROJECT_BINARY_DIR}/proto"
+	)
+endif()
+
+target_include_directories(libwifuzz ${WIFUZZ_INCLUDE_DIRS})
 
 add_executable(wi_fuzz main.cpp)
 target_link_libraries(wi_fuzz libwifuzz)

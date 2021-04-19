@@ -15,7 +15,9 @@ enum FuzzerType {
 };
 
 enum MonitorType {
+#ifdef GRPC_ENABLED
     GRPC,
+#endif
     PASSIVE,
     SNIFFING,
 };

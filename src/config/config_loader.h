@@ -54,20 +54,22 @@ ConfigMonitor parse_monitor_config(const YAML::Node &monitor_node) {
     auto frame_history_len = monitor_node["frame_history_len"].as<unsigned >();
     std::filesystem::path dump_file = monitor_node["dump_file"].as<std::string>();
 
-    if (type == "grpc") {
-        return {
-            .frame_history_len = frame_history_len,
-            .type = GRPC,
-            .server_address = monitor_node["server_address"].as<std::string>(),
-            .dump_file = dump_file,
-        };
-    } else if (type == "passive") {
+    if (type == "passive") {
         return {
             .frame_history_len = frame_history_len,
             .type = PASSIVE,
             .timeout = parse_duration_s(monitor_node["timeout_s"].as<std::string>()),
             .dump_file = dump_file,
         };
+#ifdef GRPC_ENABLED
+    } else if (type == "grpc") {
+        return {
+            .frame_history_len = frame_history_len,
+            .type = GRPC,
+            .server_address = monitor_node["server_address"].as<std::string>(),
+            .dump_file = dump_file,
+        };
+#endif
     } else if (type == "sniffing") {
         return {
             .frame_history_len = frame_history_len,

@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 3.17)
 project(cpp)
 
+option(GRPC_ENABLED "Enable grpc monitor" OFF) # Disabled by default
+if(GRPC_ENABLED)
+	message("Building with GRPC monitor support")
+	ADD_DEFINITIONS(-DGRPC_ENABLED=1)
+else(GRPC_ENABLED)
+	message("Building without GRPC monitor support")
+endif(GRPC_ENABLED)
+
 set(CMAKE_CXX_STANDARD 20)
 add_compile_options(-fcoroutines)
 
