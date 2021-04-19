@@ -19,7 +19,7 @@ int main(int argc, char **argv)
     Config config;
     try {
         config = load_config({config_file});
-    } catch (YAML::Exception &e) {
+    } catch (std::exception &e) {
         std::cout << "invalid config\n";
         return 1;
     }
