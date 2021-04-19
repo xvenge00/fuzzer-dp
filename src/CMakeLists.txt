@@ -1,12 +1,10 @@
-set(SOURCES main.cpp)
-
 add_subdirectory(fuzzer)
 add_subdirectory(utils)
 add_subdirectory(monitor)
 
-add_library(libwifuzz fuzzer_control.cpp radiotap.cpp)
+add_library(libwifuzz++ fuzzer_control.cpp radiotap.cpp)
 
-target_link_libraries(libwifuzz
+target_link_libraries(libwifuzz++
 					  ${PCAP_LIBRARY}
 					  frame_fuzzer
 					  fuzzer_utils
@@ -27,8 +25,8 @@ if (GRPC_ENABLED)
 	)
 endif()
 
-target_include_directories(libwifuzz ${WIFUZZ_INCLUDE_DIRS})
+target_include_directories(libwifuzz++ ${WIFUZZ_INCLUDE_DIRS})
 
-add_executable(wi_fuzz main.cpp)
-target_link_libraries(wi_fuzz libwifuzz)
-target_include_directories(wi_fuzz PRIVATE ${CMAKE_SOURCE_DIR}/src)
+add_executable(wifuzz++ main.cpp)
+target_link_libraries(wifuzz++ libwifuzz++)
+target_include_directories(wifuzz++ PRIVATE ${CMAKE_SOURCE_DIR}/src)
