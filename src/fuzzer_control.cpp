@@ -228,7 +228,39 @@ void fuzz_auth(
     );
 }
 
-int fuzz(Config config) {
+std::unique_ptr<Monitor> build_monitor(const ConfigMonitor &config, mac_t target) {
+    switch (config.type) {
+    case GRPC:
+        return std::make_unique<MonitorGRPC>(
+            config.frame_history_len,
+            config.dump_file,
+            config.server_address);
+    case PASSIVE:
+        return std::make_unique<MonitorPassive>(
+            config.frame_history_len,
+            config.timeout,
+            config.dump_file);
+    case SNIFFING:
+        return std::make_unique<SniffingMonitor<mac_t>>(
+            config.frame_history_len,
+            config.timeout,
+            config.interface,
+            target,
+            config.dump_file);
+    default:
+        throw std::runtime_error("case not implemented");
+    }
+}
+
+void print_report(bool failure_detected, const std::filesystem::path &packets_file) {
+    if (failure_detected) {
+        spdlog::info("Failure detected! Check '{}' for packets, which may have caused the failure.", packets_file.string());
+    } else {
+        spdlog::info("No failure detected.");
+    }
+}
+
+int fuzz(const Config &config) {
     char errbuf[PCAP_ERRBUF_SIZE] = {}; // for errors (required)
 
     auto *handle = pcap_open_live(config.interface.c_str(), BUFSIZ/10, 0, 1, errbuf);
@@ -237,27 +269,50 @@ int fuzz(Config config) {
         return 1;
     }
 
-//    MonitorESP monitor{config.frame_history_len};
-//    MonitorPassive monitor{config.frame_history_len, std::chrono::seconds(10)};
-    SniffingMonitor monitor{config.frame_history_len, std::chrono::seconds(10), "wlp3s0", config.test_device_mac};
+    auto monitor = build_monitor(config.monitor, config.test_device_mac);
 
     switch (config.fuzzer_type) {
     case PRB_RESP:
-        fuzz_prb_resp(handle, config.src_mac, config.test_device_mac, monitor);
+        fuzz_prb_resp(handle, config.src_mac, config.test_device_mac, *monitor);
         break;
     case BEACON:
-        fuzz_beacon(handle, config.src_mac, monitor, std::chrono::milliseconds{10}, 5); // TODO pass from config
+        fuzz_beacon(
+            handle,
+            config.src_mac,
+            *monitor,
+            config.controller.wait_duration,
+            config.controller.packet_resend_count);
         break;
     case DEAUTH:
-        fuzz_deauth(handle, config.src_mac, config.test_device_mac, monitor, std::chrono::milliseconds{100}, 5);
+        fuzz_deauth(
+            handle,
+            config.src_mac,
+            config.test_device_mac,
+            *monitor,
+            config.controller.wait_duration,
+            config.controller.packet_resend_count);
         break;
     case AUTH:
-        fuzz_auth(handle, config.src_mac, config.test_device_mac, monitor, std::chrono::milliseconds{100}, 5);
+        fuzz_auth(
+            handle,
+            config.src_mac,
+            config.test_device_mac,
+            *monitor,
+            config.controller.wait_duration,
+            config.controller.packet_resend_count);
         break;
     case DISASS:
-        fuzz_disass(handle, config.src_mac, config.test_device_mac, monitor, std::chrono::milliseconds{100}, 5);
+        fuzz_disass(
+            handle,
+            config.src_mac,
+            config.test_device_mac,
+            *monitor,
+            config.controller.wait_duration,
+            config.controller.packet_resend_count);
         break;
     }
+
+    print_report(monitor->detected_failure(), config.monitor.dump_file);
 
     return 0;
 }

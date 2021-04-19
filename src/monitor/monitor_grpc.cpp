@@ -12,13 +12,18 @@ MonitorGrpcService::MonitorGrpcService(
     ::google::protobuf::Empty *response
 ) {
     monitor_ref.dump_frames();
+    monitor_ref.set_failure();
     return grpc::Status::OK;
 }
 
 
-MonitorESP::MonitorESP(size_t frame_buff_size):
-    Monitor(frame_buff_size),
-    server_address("0.0.0.0:50051"),    // TODO address
+MonitorGRPC::MonitorGRPC(
+    size_t frame_buff_size,
+    std::filesystem::path dump_file,
+    const std::string &server_address
+):
+    Monitor(frame_buff_size, std::move(dump_file)),
+    server_address(server_address),
     service(*this)
 {
     grpc::ServerBuilder builder;
@@ -31,7 +36,7 @@ MonitorESP::MonitorESP(size_t frame_buff_size):
     th_monitor = std::make_unique<std::thread>(&grpc::Server::Wait, server.get());
 }
 
-MonitorESP::~MonitorESP() {
+MonitorGRPC::~MonitorGRPC() {
     server->Shutdown();
     th_monitor->join();
 }

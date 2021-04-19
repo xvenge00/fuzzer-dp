@@ -40,6 +40,6 @@ void fuzz_deauth(
     unsigned packets_resend_count
 );
 
-int fuzz(Config config);
+int fuzz(const Config &config);
 
 #endif //CPP_FUZZER_CONTROL_H
