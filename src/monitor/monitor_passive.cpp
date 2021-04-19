@@ -6,7 +6,8 @@ MonitorPassive::MonitorPassive(
     const std::chrono::seconds &timeout,
     std::filesystem::path dump_file
 ):
-    Monitor(buff_size, std::move(dump_file)), watchdog(timeout, [&]() { this->dump_frames(); }) {}
+    Monitor(buff_size, std::move(dump_file)),
+    watchdog(timeout, [&]() { this->dump_frames(); this->set_failure(); }) {}
 
 void MonitorPassive::notify() {
     watchdog.pet();

@@ -19,3 +19,11 @@ void Monitor::notify() {}
 GuardedCircularBuffer<std::vector<std::uint8_t>> &Monitor::frame_buff() {
     return frame_buff_;
 }
+
+void Monitor::set_failure() {
+    failure_detected = true;
+}
+
+bool Monitor::detected_failure() {
+    return failure_detected;
+}

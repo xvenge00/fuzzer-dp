@@ -252,6 +252,14 @@ std::unique_ptr<Monitor> build_monitor(const ConfigMonitor &config, mac_t target
     }
 }
 
+void print_report(bool failure_detected, const std::filesystem::path &packets_file) {
+    if (failure_detected) {
+        spdlog::info("Failure detected! Check '{}' for packets, which may have caused the failure.", packets_file.string());
+    } else {
+        spdlog::info("No failure detected.");
+    }
+}
+
 int fuzz(const Config &config) {
     char errbuf[PCAP_ERRBUF_SIZE] = {}; // for errors (required)
 
@@ -303,6 +311,8 @@ int fuzz(const Config &config) {
             config.controller.packet_resend_count);
         break;
     }
+
+    print_report(monitor->detected_failure(), config.monitor.dump_file);
 
     return 0;
 }

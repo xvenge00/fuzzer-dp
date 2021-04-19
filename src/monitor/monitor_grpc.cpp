@@ -12,6 +12,7 @@ MonitorGrpcService::MonitorGrpcService(
     ::google::protobuf::Empty *response
 ) {
     monitor_ref.dump_frames();
+    monitor_ref.set_failure();
     return grpc::Status::OK;
 }
 
