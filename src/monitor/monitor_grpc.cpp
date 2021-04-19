@@ -16,8 +16,12 @@ MonitorGrpcService::MonitorGrpcService(
 }
 
 
-MonitorGRPC::MonitorGRPC(size_t frame_buff_size, const std::string &server_address):
-    Monitor(frame_buff_size),
+MonitorGRPC::MonitorGRPC(
+    size_t frame_buff_size,
+    std::filesystem::path dump_file,
+    const std::string &server_address
+):
+    Monitor(frame_buff_size, std::move(dump_file)),
     server_address(server_address),
     service(*this)
 {

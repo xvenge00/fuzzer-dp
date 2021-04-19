@@ -11,6 +11,7 @@ test_device_mac: "3c:71:bf:a6:e6:d0" # ESP
 
 monitor:
   frame_history_len: 10
+  dump_file: "/home/adam/dev/dp/cpp/dump"
 #  type: grpc
 #  server_address: 0.0.0.0:500051
   type: passive
@@ -20,5 +21,5 @@ monitor:
 #  interface: wpl3s0
 
 controller:
-  wait_duration_ms: 10
+  wait_duration_ms: 100
   packet_resend_count: 5

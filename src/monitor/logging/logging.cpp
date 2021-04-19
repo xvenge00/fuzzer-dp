@@ -1,20 +1,29 @@
-#include <boost/circular_buffer.hpp>
-#include <iostream>
+#include <fstream>
 #include "logging.h"
 #include "utils/debug.h"
 
-void dump_frames(boost::circular_buffer<std::vector<std::uint8_t>> frames) {
+
+void dump_frames(
+    const std::vector<std::vector<std::uint8_t>> &frames,
+    std::ostream &ostream,
+    const std::string &end
+) {
     int i = frames.size();
     for (auto &f: frames) {
-        std::cout << "Frame [current-" << --i << "]\n";
-        print_bytes(std::cout, f.data(), f.size());
+        ostream << "Frame [current-" << --i << "]\n";
+        print_bytes(ostream, f.data(), f.size());
     }
+
+    ostream << end << '\n';
 }
 
-void dump_frames(std::vector<std::vector<std::uint8_t>> frames) {
-    int i = frames.size();
-    for (auto &f: frames) {
-        std::cout << "Frame [current-" << --i << "]\n";
-        print_bytes(std::cout, f.data(), f.size());
-    }
+void dump_frames(
+    const std::vector<std::vector<std::uint8_t>> &frames,
+    const std::filesystem::path &path,
+    const std::string &end
+) {
+    std::ofstream outfile;
+    outfile.open(path, std::ios_base::app); // append
+
+    dump_frames(frames, outfile, end);
 }

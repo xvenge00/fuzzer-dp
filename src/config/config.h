@@ -4,6 +4,7 @@
 #include <string>
 #include <array>
 #include <chrono>
+#include <filesystem>
 
 enum FuzzerType {
     PRB_RESP,
@@ -25,6 +26,7 @@ struct ConfigMonitor {
     std::string server_address;
     std::chrono::seconds timeout;
     std::string interface;
+    std::filesystem::path dump_file;
 };
 
 struct ConfigController {

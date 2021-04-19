@@ -231,11 +231,22 @@ void fuzz_auth(
 std::unique_ptr<Monitor> build_monitor(const ConfigMonitor &config, mac_t target) {
     switch (config.type) {
     case GRPC:
-        return std::make_unique<MonitorGRPC>(config.frame_history_len, config.server_address);
+        return std::make_unique<MonitorGRPC>(
+            config.frame_history_len,
+            config.dump_file,
+            config.server_address);
     case PASSIVE:
-        return std::make_unique<MonitorPassive>(config.frame_history_len, config.timeout);
+        return std::make_unique<MonitorPassive>(
+            config.frame_history_len,
+            config.timeout,
+            config.dump_file);
     case SNIFFING:
-        return std::make_unique<SniffingMonitor<mac_t>>(config.frame_history_len, config.timeout, config.interface, target);
+        return std::make_unique<SniffingMonitor<mac_t>>(
+            config.frame_history_len,
+            config.timeout,
+            config.interface,
+            target,
+            config.dump_file);
     default:
         throw std::runtime_error("case not implemented");
     }

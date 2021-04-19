@@ -26,7 +26,11 @@ struct MonitorGRPC: public Monitor {
     std::unique_ptr<grpc::Server> server;
     std::unique_ptr<std::thread> th_monitor;
 
-    explicit MonitorGRPC(size_t frame_buff_size, const std::string &server_addr = "0.0.0.0:50051");
+    explicit MonitorGRPC(
+        size_t frame_buff_size,
+        std::filesystem::path dump_file,
+        const std::string &server_addr = "0.0.0.0:50051"
+    );
 
     ~MonitorGRPC() override;
 };

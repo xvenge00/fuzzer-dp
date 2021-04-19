@@ -51,24 +51,30 @@ std::chrono::milliseconds parse_duration_ms(const std::string &d) {
 
 ConfigMonitor parse_monitor_config(const YAML::Node &monitor_node) {
     auto type = monitor_node["type"].as<std::string>();
+    auto frame_history_len = monitor_node["frame_history_len"].as<unsigned >();
+    std::filesystem::path dump_file = monitor_node["dump_file"].as<std::string>();
+
     if (type == "grpc") {
         return {
-            .frame_history_len = monitor_node["frame_history_len"].as<unsigned >(),
+            .frame_history_len = frame_history_len,
             .type = GRPC,
-            .server_address = monitor_node["server_address"].as<std::string>()
+            .server_address = monitor_node["server_address"].as<std::string>(),
+            .dump_file = dump_file,
         };
     } else if (type == "passive") {
         return {
-            .frame_history_len = monitor_node["frame_history_len"].as<unsigned >(),
+            .frame_history_len = frame_history_len,
             .type = PASSIVE,
             .timeout = parse_duration_s(monitor_node["timeout_s"].as<std::string>()),
+            .dump_file = dump_file,
         };
     } else if (type == "sniffing") {
         return {
-            .frame_history_len = monitor_node["frame_history_len"].as<unsigned >(),
+            .frame_history_len = frame_history_len,
             .type = SNIFFING,
             .timeout = parse_duration_s(monitor_node["timeout_s"].as<std::string>()),
             .interface = monitor_node["interface"].as<std::string>(),
+            .dump_file = dump_file,
         };
     } else {
         throw std::logic_error("invalid monitor type");

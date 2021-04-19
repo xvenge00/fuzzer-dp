@@ -8,7 +8,8 @@ struct MonitorPassive: public Monitor {
 
     MonitorPassive(
         size_t buff_size,
-        const std::chrono::seconds &timeout
+        const std::chrono::seconds &timeout,
+        std::filesystem::path dump_file
     );
 
     void notify() override;

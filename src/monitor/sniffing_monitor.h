@@ -12,8 +12,9 @@ struct SniffingMonitor: public MonitorPassive {
         size_t buff_size,
         const std::chrono::seconds &timeout,
         const std::string &interface,
-        mac_t target
-    ): MonitorPassive(buff_size, timeout) {
+        mac_t target,
+        std::filesystem::path dump_file
+    ): MonitorPassive(buff_size, timeout, std::move(dump_file)) {
         auto *h = pcap_open_live(interface.c_str(), BUFSIZ/10, 0, 1, errbuf);
         if (h == nullptr) {
             throw std::runtime_error("could not init sniffing interface " + interface);
