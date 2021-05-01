@@ -6,8 +6,9 @@
 
 BeaconFrameFuzzer::BeaconFrameFuzzer(
     mac_t src_mac,
-    mac_t fuzzed_device_mac
-): Fuzzer(src_mac, fuzzed_device_mac) {}
+    mac_t fuzzed_device_mac,
+    std::uint8_t channel
+): Fuzzer(src_mac, fuzzed_device_mac), channel(channel) {}
 
 generator<fuzz_t> BeaconFrameFuzzer::fuzz_content()
 {

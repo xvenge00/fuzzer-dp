@@ -7,7 +7,8 @@
 #include "utils/vector_appender.h"
 
 struct TaggedParams {
-    explicit TaggedParams(std::uint8_t tag, Fuzzable &fuzzer): tag(tag), fuzzer(fuzzer) {}
+    explicit TaggedParams(std::uint8_t tag, Fuzzable &fuzzer, std::uint8_t channel):
+        tag(tag), fuzzer(fuzzer), channel(channel) {}
 
     virtual ~TaggedParams() = default;
 
@@ -29,7 +30,7 @@ struct TaggedParams {
         std::vector<std::uint8_t> ds {
             0x03,   // ds
             0x01,   //len
-            0x02    // channel 2    // TODO load real channel
+            channel    // channel
         };
 
         // add fuzzed fields
@@ -41,6 +42,7 @@ struct TaggedParams {
 
     const std::uint8_t tag;
     Fuzzable &fuzzer;
+    const std::uint8_t channel;
 };
 
 #endif //CPP_TAGGED_PARAMS_H

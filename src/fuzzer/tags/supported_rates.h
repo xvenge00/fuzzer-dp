@@ -10,7 +10,7 @@
 #include "fuzzer/tags/tagged_params.h"
 
 struct SupportedRatesFuzzer: public Fuzzable, public TaggedParams {
-    SupportedRatesFuzzer(): TaggedParams(0x01, *this) {}
+    SupportedRatesFuzzer(std::uint8_t channel): TaggedParams(0x01, *this, channel) {}
 
     size_t num_mutations() override {
         return 1 + rates_len.size() + 1;

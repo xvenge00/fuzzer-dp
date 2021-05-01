@@ -8,7 +8,7 @@
 #include "fuzzer/tags/tagged_params.h"
 
 struct TIMFuzzer: public Fuzzable, public TaggedParams {
-    TIMFuzzer(): TaggedParams(0x05, *this) {}
+    TIMFuzzer(std::uint8_t channel): TaggedParams(0x05, *this, channel) {}
 
     size_t num_mutations() override {
         return fuzzing_lengths.size()

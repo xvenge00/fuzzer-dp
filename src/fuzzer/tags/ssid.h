@@ -12,7 +12,7 @@ using namespace std::literals::string_literals;
 
 struct SSIDFuzzer: public Fuzzable, public TaggedParams {
 
-    SSIDFuzzer(): TaggedParams(0x00, *this) {}
+    SSIDFuzzer(std::uint8_t channel): TaggedParams(0x00, *this, channel) {}
 
     size_t num_mutations() override {
         return fuzz_lengths.size() + fuzz_dict.size() + 2;
@@ -61,7 +61,7 @@ struct SSIDFuzzer: public Fuzzable, public TaggedParams {
         std::vector<std::uint8_t> ds_param {
             0x03,   // DS tag
             0x01,   // len
-            0x02    // channel 2    // TODO get valid channel
+            channel // channel
         };
 
         // add fuzzed ssid

@@ -11,12 +11,14 @@ void fuzz_prb_resp(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzz_device_mac,
+    const std::uint8_t channel,
     Monitor &monitor
 );
 
 void fuzz_beacon(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
+    const std::uint8_t channel,
     Monitor &monitor,
     const std::chrono::milliseconds &wait_duration,
     unsigned packets_resend_count

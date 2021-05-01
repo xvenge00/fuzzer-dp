@@ -8,7 +8,7 @@
 #include "fuzzer/utils/vector_generators.h"
 
 struct CFParamsFuzzer: public  Fuzzable, public TaggedParams {
-    CFParamsFuzzer(): TaggedParams(0x04, *this) {}
+    CFParamsFuzzer(std::uint8_t channel): TaggedParams(0x04, *this, channel) {}
 
     size_t num_mutations() override {
         return fuzzing_lengths.size() + fuzzing_claimed_lengths.size() + fuzzing_real_lengths.size();

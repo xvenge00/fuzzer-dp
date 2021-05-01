@@ -12,7 +12,7 @@
 #include "fuzzer/tags/tagged_params.h"
 
 struct DSParamsFuzzer: public Fuzzable, public TaggedParams {
-    DSParamsFuzzer(): TaggedParams(0x03, *this) {}
+    DSParamsFuzzer(std::uint8_t channel): TaggedParams(0x03, *this, channel) {}
 
     size_t num_mutations() override {
         return fuzzing_lengths.size() + invalid_channels.size();

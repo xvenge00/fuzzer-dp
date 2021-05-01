@@ -5,8 +5,9 @@
 
 ProbeResponseFuzzer::ProbeResponseFuzzer(
     mac_t source_mac,
-    mac_t fuzzed_device_mac
-): ResponseFuzzer(IEEE80211_FC0_SUBTYPE_PROBE_REQ, source_mac, fuzzed_device_mac) {}
+    mac_t fuzzed_device_mac,
+    std::uint8_t channel
+): ResponseFuzzer(IEEE80211_FC0_SUBTYPE_PROBE_REQ, source_mac, fuzzed_device_mac), channel(channel) {}
 
 size_t ProbeResponseFuzzer::num_mutations() {
     return fuzzer_ssid.num_mutations() +

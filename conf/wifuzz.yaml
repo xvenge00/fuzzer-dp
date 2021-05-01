@@ -8,6 +8,7 @@ test_device_mac: "3c:71:bf:a6:e6:d0" # ESP
 #test_device_mac: "08:c5:e1:15:98:1a"
 #test_device_mac: "0a:c5:e1:15:98:1a"
 #const std::array<std::uint8_t, 6>  my_mac = {0x00, 0x23, 0x45, 0x67, 0x89, 0xab};  // random
+channel: 5
 
 monitor:
   frame_history_len: 10
