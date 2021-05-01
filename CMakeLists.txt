@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.16)
 project(cpp)
 
 option(GRPC_ENABLED "Enable grpc monitor" OFF) # Disabled by default
@@ -18,10 +18,10 @@ find_package(PCAP REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(yaml-cpp)
 
-add_subdirectory(src)
-
 if(GRPC_ENABLED)
 	find_package(gRPC REQUIRED)
 	find_package(Protobuf REQUIRED)
 	add_subdirectory(proto)
 endif()
+
+add_subdirectory(src)

@@ -11,7 +11,7 @@
 #include "fuzzer/tags/tagged_params.h"
 
 struct FHParamsFuzzer: public Fuzzable, public TaggedParams {
-    FHParamsFuzzer(): TaggedParams(0x02, *this) {}
+    FHParamsFuzzer(std::uint8_t channel): TaggedParams(0x02, *this, channel) {}
 
     size_t num_mutations() override {
         return fuzzing_lengths.size() + fuzzing_claimed_lengths.size() + fuzzing_real_lengths.size();

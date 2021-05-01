@@ -134,10 +134,11 @@ void fuzz_prb_resp(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzz_device_mac,
+    const std::uint8_t channel,
     Monitor &monitor
 ) {
     spdlog::info("fuzzing probe response");
-    ProbeResponseFuzzer fuzzer{src_mac, fuzz_device_mac};
+    ProbeResponseFuzzer fuzzer{src_mac, fuzz_device_mac, channel};
     fuzz_response(
         handle,
         fuzzer,
@@ -150,13 +151,14 @@ void fuzz_prb_resp(
 void fuzz_beacon(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
+    const std::uint8_t channel,
     Monitor &monitor,
     const std::chrono::milliseconds &wait_duration,
     unsigned packets_resend_count
 ) {
     spdlog::info("fuzzing beacon");
     mac_t broadcast_mac{0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-    BeaconFrameFuzzer fuzzer{src_mac, broadcast_mac};
+    BeaconFrameFuzzer fuzzer{src_mac, broadcast_mac, channel};
     fuzz_push(
         handle,
         fuzzer,
@@ -278,12 +280,13 @@ int fuzz(const Config &config) {
 
     switch (config.fuzzer_type) {
     case PRB_RESP:
-        fuzz_prb_resp(handle, config.src_mac, config.test_device_mac, *monitor);
+        fuzz_prb_resp(handle, config.src_mac, config.test_device_mac, config.channel, *monitor);
         break;
     case BEACON:
         fuzz_beacon(
             handle,
             config.src_mac,
+            config.channel,
             *monitor,
             config.controller.wait_duration,
             config.controller.packet_resend_count);

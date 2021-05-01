@@ -41,6 +41,7 @@ struct Config {
     unsigned random_seed;
     std::array<std::uint8_t, 6> src_mac;
     std::array<std::uint8_t, 6> test_device_mac;
+    std::uint8_t channel;
     FuzzerType fuzzer_type;
     ConfigMonitor monitor;
     ConfigController controller;

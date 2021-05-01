@@ -106,6 +106,7 @@ Config load_config(const std::filesystem::path &config_file) {
         .random_seed = config_node["random_seed"].as<unsigned>(),
         .src_mac = parse_mac(config_node["src_mac"].as<std::string>()),
         .test_device_mac = parse_mac(config_node["test_device_mac"].as<std::string>()),
+        .channel = config_node["channel"].as<std::uint8_t>(),
         .fuzzer_type = parse_fuzzer_type(config_node["fuzzer_type"].as<std::string>()),
         .monitor = parse_monitor_config(config_node["monitor"]),
         .controller = parse_controller_config(config_node["controller"]),

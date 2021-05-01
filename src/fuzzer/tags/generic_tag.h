@@ -8,7 +8,7 @@
 #include "fuzzer/tags/tagged_params.h"
 
 struct GenericTagFuzzer: public  Fuzzable, public TaggedParams {
-    explicit GenericTagFuzzer(std::uint8_t tag): TaggedParams(tag, *this) {}
+    explicit GenericTagFuzzer(std::uint8_t tag, std::uint8_t channel): TaggedParams(tag, *this, channel) {}
 
     size_t num_mutations() override {
         return fuzzing_lengths.size() + fuzzing_claimed_lengths.size() + fuzzing_real_lengths.size();
