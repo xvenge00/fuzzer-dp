@@ -13,10 +13,10 @@ channel: 5
 monitor:
   frame_history_len: 10
   dump_file: "/home/adam/dev/dp/cpp/dump"
-#  type: grpc
-#  server_address: 0.0.0.0:500051
-  type: passive
-  timeout_s: 5s
+  type: grpc
+  server_address: 0.0.0.0:50051
+#  type: passive
+#  timeout_s: 5s
 #  type: snifing
 #  timeout_s: 50s
 #  interface: wpl3s0
