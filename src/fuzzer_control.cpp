@@ -26,6 +26,7 @@
 void fuzz_response(
     pcap *handle,
     ResponseFuzzer &fuzzer,
+    unsigned packets_resend_count,
     const std::array<std::uint8_t, 6> &fuzzed_device_mac,
     Monitor &monitor,
     void (* setup) (pcap *),
@@ -36,6 +37,8 @@ void fuzz_response(
     auto frame_generator_it = frame_generator.begin();
 
     unsigned fuzzed_inputs = 0;
+    unsigned frame_send_count = packets_resend_count;   // to cause generation of new frame
+    fuzz_t frame;
 
     while(true) {
         if (setup != nullptr) {
@@ -53,15 +56,23 @@ void fuzz_response(
             auto *mac = get_prb_req_mac(ieee802_11_data, ieee802_11_size);
             if (strncmp((const char *)mac, (const char*) fuzzed_device_mac.data(), 6) == 0) {
                 if (get_frame_type(ieee802_11_data, ieee802_11_size) == fuzzer.responds_to_subtype) {
-                    if (frame_generator_it != frame_generator.end()) {
-                        auto frame = *frame_generator_it;
-                        pcap_sendpacket(handle, frame.data(), frame.size());
-                        monitor.frame_buff().push_back(*frame_generator_it);
-                        ++frame_generator_it;
-                        ++fuzzed_inputs;
+                    if (frame_send_count < packets_resend_count) {
+                        // send already generated frame
+                        ++frame_send_count;
                     } else {
-                        throw std::runtime_error("exhausted fuzz pool");
+                        // should generate new frame to send
+                        if (frame_generator_it != frame_generator.end()) {
+                            frame = *frame_generator_it;
+                            ++frame_generator_it;
+                            ++fuzzed_inputs;
+                            frame_send_count = 1;
+                        } else {
+                            throw std::runtime_error("exhausted fuzz pool");
+                        }
                     }
+
+                    pcap_sendpacket(handle, frame.data(), frame.size());
+                    monitor.frame_buff().push_back(*frame_generator_it);
                 }
 
                 monitor.notify();
@@ -135,6 +146,7 @@ void fuzz_prb_resp(
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzz_device_mac,
     const std::uint8_t channel,
+    unsigned packets_resend_count,
     Monitor &monitor
 ) {
     spdlog::info("fuzzing probe response");
@@ -142,6 +154,7 @@ void fuzz_prb_resp(
     fuzz_response(
         handle,
         fuzzer,
+        packets_resend_count,
         fuzz_device_mac,
         monitor,
         nullptr,
@@ -280,7 +293,13 @@ int fuzz(const Config &config) {
 
     switch (config.fuzzer_type) {
     case PRB_RESP:
-        fuzz_prb_resp(handle, config.src_mac, config.test_device_mac, config.channel, *monitor);
+        fuzz_prb_resp(
+            handle,
+            config.src_mac,
+            config.test_device_mac,
+            config.channel,
+            config.controller.packet_resend_count,
+            *monitor);
         break;
     case BEACON:
         fuzz_beacon(
