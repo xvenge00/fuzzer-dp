@@ -7,6 +7,7 @@
 #include "fuzzer/utils/vector_generators.h"
 #include "fuzzer/tags/tagged_params.h"
 
+// TODO nech tam je toho viac, nevadi ze to bude trochu na dlhsie
 struct GenericTagFuzzer: public  Fuzzable, public TaggedParams {
     explicit GenericTagFuzzer(std::uint8_t tag, std::uint8_t channel): TaggedParams(tag, *this, channel) {}
 
@@ -33,7 +34,10 @@ struct GenericTagFuzzer: public  Fuzzable, public TaggedParams {
     }
 
 private:
-    std::array<std::uint8_t, 8> fuzzing_lengths{0, 1, 2, 3, 4, 5, 6, 7};
+    std::array<std::uint8_t, 32> fuzzing_lengths{
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+        11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+        31, 32, 127, 128, 129, 250, 251, 252, 253, 254, 255};
     std::array<std::uint8_t, 4> fuzzing_real_lengths{0, 5,7, 255};
     std::array<std::uint8_t, 4> fuzzing_claimed_lengths{0, 5,7, 255};
 };

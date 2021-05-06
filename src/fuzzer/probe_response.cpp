@@ -16,7 +16,8 @@ size_t ProbeResponseFuzzer::num_mutations() {
         fuzzer_fh_params.num_mutations() +
         fuzzer_tim.num_mutations() +
         fuzzer_cf_params.num_mutations() +
-        fuzzer_erp.num_mutations();
+        fuzzer_erp.num_mutations() +
+        fuzzer_erp.num_mutations()*255;
 }
 
 generator<fuzz_t> ProbeResponseFuzzer::get_mutated() {
@@ -94,5 +95,12 @@ generator<fuzz_t> ProbeResponseFuzzer::fuzz_prb_req_content() {
 
     for (auto &fuzzed_erp: fuzzer_erp.get_whole_param_set()) {
         co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_erp});
+    }
+
+    for (unsigned tag = 0; tag <= 255; ++tag) {
+        auto tag_fuzzer = GenericTagFuzzer(tag, channel);
+        for (auto &fuzzed_params: tag_fuzzer.get_whole_param_set()) {
+            co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_params});
+        }
     }
 }
