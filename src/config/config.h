@@ -32,7 +32,7 @@ enum SetUp {
 enum TearDown {
     NoTearDown,
     Deauthentiacte,
-    Deassociate,
+    Disassociate,
 };
 
 struct ConfigMonitor {

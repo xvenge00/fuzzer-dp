@@ -9,4 +9,10 @@ void associate(
     const std::array<std::uint8_t, 6> &fuzzed_device_mac
 );
 
+void authenticate(
+    pcap *handle,
+    const std::array<std::uint8_t, 6> &src_mac,
+    const std::array<std::uint8_t, 6> &fuzzed_device_mac
+);
+
 #endif //CPP_SETUP_H

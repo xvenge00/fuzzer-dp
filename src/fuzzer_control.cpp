@@ -287,7 +287,7 @@ setup_f_t get_setup_f(SetUp setup) {
     case SetUp::NoSetUp:
         return nullptr;
     case SetUp::Authenticate:
-        return nullptr; // TODO auth function
+        return authenticate;
     case SetUp::Associate:
         return associate;
     default:
@@ -299,8 +299,8 @@ teardown_f_t get_teardown_f(TearDown teardown) {
     switch (teardown) {
     case NoTearDown:
         return nullptr;
-    case TearDown::Deassociate:
-        return nullptr; // TODO deass
+    case TearDown::Disassociate:
+        return disass;
     case TearDown::Deauthentiacte:
         return deauth;
     default:

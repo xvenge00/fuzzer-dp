@@ -118,8 +118,8 @@ TearDown parse_tear_down(const std::string &conf) {
         return NoTearDown;
     } else if (conf == "deauth") {
         return Deauthentiacte;
-    } else if (conf == "deassociate") {
-        return Deassociate;
+    } else if (conf == "disassociate") {
+        return Disassociate;
     } else {
         throw std::runtime_error("invalid setup");
     }

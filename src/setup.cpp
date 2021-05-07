@@ -234,3 +234,50 @@ void associate(
     }
     spdlog::info("can fuzz");
 }
+
+void authenticate(
+    pcap *handle,
+    const std::array<std::uint8_t, 6> &src_mac,
+    const std::array<std::uint8_t, 6> &fuzzed_device_mac
+) {
+    struct pcap_pkthdr header{};
+
+    // wait for prb req and send them
+    auto prb_resp = get_prb_req(src_mac, fuzzed_device_mac);
+
+    while(true) {
+        const u_char *packet = pcap_next(handle, &header);
+
+        size_t rt_size = get_radiotap_size(packet, header.caplen);
+        const std::uint8_t *ieee802_11_data = packet + rt_size;
+        const std::size_t ieee802_11_size = header.caplen - rt_size;
+
+        try{
+            auto *mac = get_prb_req_mac(ieee802_11_data, ieee802_11_size);
+            if (strncmp((const char *)mac, (const char*) fuzzed_device_mac.data(), 6) == 0) {
+                if (get_frame_type(ieee802_11_data, ieee802_11_size) == 0x40) { // prb request
+                    for (int i = 0; i < 15; ++i) {
+                        pcap_sendpacket(handle, prb_resp.data(), prb_resp.size());
+                    }
+                    spdlog::info("sent probe responses");
+                }
+                if (get_frame_type(ieee802_11_data, ieee802_11_size) == 0xb0) { // auth packet 1
+                    auto auth_succ = get_auth_succ(src_mac, fuzzed_device_mac);
+                    for (int i = 0; i < 10; ++i) {
+                        pcap_sendpacket(handle, auth_succ.data(), auth_succ.size());
+                    }
+                    break;
+                }
+                if (get_frame_type(ieee802_11_data, ieee802_11_size) == (0xb0 & 0x4)) { // rts
+                    auto cts = get_cts(fuzzed_device_mac);
+                    for (int i = 0; i < 1; ++i) {
+                        pcap_sendpacket(handle, cts.data(), cts.size());
+                    }
+                    spdlog::info("cts");
+                }
+            }
+        } catch (std::runtime_error &e) {
+//            spdlog::warn("Caught exception. {}", e.what());
+        }
+    }
+}

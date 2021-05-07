@@ -9,4 +9,10 @@ void deauth(
     const std::array<std::uint8_t, 6> &fuzzed_device_mac
 );
 
+void disass(
+    pcap *handle,
+    const std::array<std::uint8_t, 6> &src_mac,
+    const std::array<std::uint8_t, 6> &fuzzed_device_mac
+);
+
 #endif //CPP_TEARDOWN_H
