@@ -2,7 +2,6 @@
 #include <cinttypes>
 #include <array>
 #include <cstring>
-#include <spdlog/spdlog.h>
 #include "utils/vector_appender.h"
 #include "net80211.h"
 #include "fuzzer/utils/rt.h"
@@ -182,8 +181,6 @@ void associate(
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzzed_device_mac
 ) {
-//    spdlog::info("associating");
-
     struct pcap_pkthdr header{};
 
     // wait for prb req and send them
@@ -203,36 +200,29 @@ void associate(
                     for (int i = 0; i < 1; ++i) {
                         pcap_sendpacket(handle, prb_resp.data(), prb_resp.size());
                     }
-//                    spdlog::info("sent probe responses");
                 }
                 if (get_frame_type(ieee802_11_data, ieee802_11_size) == 0xb0) { // auth packet 1
                     auto auth_succ = get_auth_succ(src_mac, fuzzed_device_mac);
                     for (int i = 0; i < 1; ++i) {
                         pcap_sendpacket(handle, auth_succ.data(), auth_succ.size());
                     }
-//                    spdlog::info("auth");
                 }
                 if (get_frame_type(ieee802_11_data, ieee802_11_size) == (0xb0 & 0x4)) { // rts
                     auto cts = get_cts(fuzzed_device_mac);
                     for (int i = 0; i < 1; ++i) {
                         pcap_sendpacket(handle, cts.data(), cts.size());
                     }
-//                    spdlog::info("cts");
                 }
                 if (get_frame_type(ieee802_11_data, ieee802_11_size) == (0x00)) { // ass req
                     auto ass_resp = get_ass_succ(src_mac, fuzzed_device_mac);
                     for (int i = 0; i < 1; ++i) {
                         pcap_sendpacket(handle, ass_resp.data(), ass_resp.size());
                     }
-//                    spdlog::info("associated");
                     break;
                 }
             }
-        } catch (std::runtime_error &e) {
-//            spdlog::warn("Caught exception. {}", e.what());
-        }
+        } catch (std::runtime_error &e) {}
     }
-//    spdlog::info("associated");
 }
 
 void authenticate(
@@ -259,7 +249,6 @@ void authenticate(
                     for (int i = 0; i < 15; ++i) {
                         pcap_sendpacket(handle, prb_resp.data(), prb_resp.size());
                     }
-                    spdlog::info("sent probe responses");
                 }
                 if (get_frame_type(ieee802_11_data, ieee802_11_size) == 0xb0) { // auth packet 1
                     auto auth_succ = get_auth_succ(src_mac, fuzzed_device_mac);
@@ -273,11 +262,8 @@ void authenticate(
                     for (int i = 0; i < 1; ++i) {
                         pcap_sendpacket(handle, cts.data(), cts.size());
                     }
-                    spdlog::info("cts");
                 }
             }
-        } catch (std::runtime_error &e) {
-//            spdlog::warn("Caught exception. {}", e.what());
-        }
+        } catch (std::runtime_error &e) {}
     }
 }

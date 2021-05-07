@@ -41,7 +41,6 @@ void fuzz_response(
 
     for(unsigned fuzzed_inputs = 0; fuzzed_inputs < fuzzer.num_mutations(); /*incremented inside loop*/) {
         if (setup != nullptr) {
-            spdlog::info("setup");
             setup(handle, fuzzer.source_mac, fuzzed_device_mac);
         }
 
@@ -75,7 +74,6 @@ void fuzz_response(
                             }
                         }
 
-                        spdlog::info("fuzzed frame");
                         pcap_sendpacket(handle, frame.data(), frame.size());
                         monitor.frame_buff().push_back(*frame_generator_it);
                         monitor.notify();
@@ -90,7 +88,6 @@ void fuzz_response(
         } while (start_t + std::chrono::seconds(10) > std::chrono::system_clock::now());
 
         if (teardown != nullptr) {
-            spdlog::info("teardown");
             teardown(handle, fuzzer.source_mac, fuzzed_device_mac);
         }
 
