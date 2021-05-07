@@ -65,7 +65,7 @@ void deauth(
 ) {
 
     auto deauth_frame = get_deauth(fuzzed_device_mac, src_mac);
-    for (int i = 0; i < 15; ++i) {
+    for (int i = 0; i < 2; ++i) {
         pcap_sendpacket(handle, deauth_frame.data(), deauth_frame.size());
     };
 }
@@ -77,7 +77,7 @@ void disass(
 ) {
 
     auto disass_frame = get_dissassociation(fuzzed_device_mac, src_mac);
-    for (int i = 0; i < 15; ++i) {
+    for (int i = 0; i < 2; ++i) {
         pcap_sendpacket(handle, disass_frame.data(), disass_frame.size());
     };
 }

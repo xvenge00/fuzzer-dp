@@ -182,7 +182,7 @@ void associate(
     const std::array<std::uint8_t, 6> &src_mac,
     const std::array<std::uint8_t, 6> &fuzzed_device_mac
 ) {
-    spdlog::info("fuzzing association response");
+//    spdlog::info("associating");
 
     struct pcap_pkthdr header{};
 
@@ -200,31 +200,31 @@ void associate(
             auto *mac = get_prb_req_mac(ieee802_11_data, ieee802_11_size);
             if (strncmp((const char *)mac, (const char*) fuzzed_device_mac.data(), 6) == 0) {
                 if (get_frame_type(ieee802_11_data, ieee802_11_size) == 0x40) { // prb request
-                    for (int i = 0; i < 15; ++i) {
+                    for (int i = 0; i < 1; ++i) {
                         pcap_sendpacket(handle, prb_resp.data(), prb_resp.size());
                     }
-                    spdlog::info("sent probe responses");
+//                    spdlog::info("sent probe responses");
                 }
                 if (get_frame_type(ieee802_11_data, ieee802_11_size) == 0xb0) { // auth packet 1
                     auto auth_succ = get_auth_succ(src_mac, fuzzed_device_mac);
                     for (int i = 0; i < 1; ++i) {
                         pcap_sendpacket(handle, auth_succ.data(), auth_succ.size());
                     }
-                    spdlog::info("auth");
+//                    spdlog::info("auth");
                 }
                 if (get_frame_type(ieee802_11_data, ieee802_11_size) == (0xb0 & 0x4)) { // rts
                     auto cts = get_cts(fuzzed_device_mac);
                     for (int i = 0; i < 1; ++i) {
                         pcap_sendpacket(handle, cts.data(), cts.size());
                     }
-                    spdlog::info("cts");
+//                    spdlog::info("cts");
                 }
                 if (get_frame_type(ieee802_11_data, ieee802_11_size) == (0x00)) { // ass req
                     auto ass_resp = get_ass_succ(src_mac, fuzzed_device_mac);
-                    for (int i = 0; i < 10; ++i) {
+                    for (int i = 0; i < 1; ++i) {
                         pcap_sendpacket(handle, ass_resp.data(), ass_resp.size());
                     }
-                    spdlog::info("ass resp");
+//                    spdlog::info("associated");
                     break;
                 }
             }
@@ -232,7 +232,7 @@ void associate(
 //            spdlog::warn("Caught exception. {}", e.what());
         }
     }
-    spdlog::info("can fuzz");
+//    spdlog::info("associated");
 }
 
 void authenticate(

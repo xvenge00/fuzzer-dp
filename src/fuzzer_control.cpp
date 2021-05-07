@@ -36,61 +36,65 @@ void fuzz_response(
     auto frame_generator = fuzzer.get_mutated();
     auto frame_generator_it = frame_generator.begin();
 
-    unsigned fuzzed_inputs = 0;
-    unsigned frame_send_count = packets_resend_count;   // to cause generation of new frame
+    unsigned frame_send_count = packets_resend_count;   // to cause generation of new frame the first time
     fuzz_t frame;
 
-    while(true) {
+    for(unsigned fuzzed_inputs = 0; fuzzed_inputs < fuzzer.num_mutations(); /*incremented inside loop*/) {
         if (setup != nullptr) {
+            spdlog::info("setup");
             setup(handle, fuzzer.source_mac, fuzzed_device_mac);
         }
 
-        const u_char *packet = pcap_next(handle, &header);
+        auto start_t = std::chrono::system_clock::now();
+        // if we don't get the right frame under 10 seconds, we might need to setup again
+        // if the frame is sent under 10 seconds, we can break from this loop
+        do {
+            const u_char *packet = pcap_next(handle, &header);
 
-        size_t rt_size = get_radiotap_size(packet, header.caplen);
-        const std::uint8_t *ieee802_11_data = packet + rt_size;
-        const std::size_t ieee802_11_size = header.caplen - rt_size;
+            size_t rt_size = get_radiotap_size(packet, header.caplen);
+            const std::uint8_t *ieee802_11_data = packet + rt_size;
+            const std::size_t ieee802_11_size = header.caplen - rt_size;
 
-        try{
-            // TODO rename get_prb_req_mac
-            auto *mac = get_prb_req_mac(ieee802_11_data, ieee802_11_size);
-            if (strncmp((const char *)mac, (const char*) fuzzed_device_mac.data(), 6) == 0) {
-                if (get_frame_type(ieee802_11_data, ieee802_11_size) == fuzzer.responds_to_subtype) {
-                    if (frame_send_count < packets_resend_count) {
-                        // send already generated frame
-                        ++frame_send_count;
-                    } else {
-                        // should generate new frame to send
-                        if (frame_generator_it != frame_generator.end()) {
-                            frame = *frame_generator_it;
-                            ++frame_generator_it;
-                            ++fuzzed_inputs;
-                            frame_send_count = 1;
+            try {
+                // TODO rename get_prb_req_mac
+                auto *mac = get_prb_req_mac(ieee802_11_data, ieee802_11_size);
+                if (strncmp((const char *) mac, (const char *) fuzzed_device_mac.data(), 6) == 0) {
+                    if (get_frame_type(ieee802_11_data, ieee802_11_size) == fuzzer.responds_to_subtype) {
+                        if (frame_send_count < packets_resend_count) {
+                            // send already generated frame
+                            ++frame_send_count;
                         } else {
-                            throw std::runtime_error("exhausted fuzz pool");
+                            // should generate new frame to send
+                            if (frame_generator_it != frame_generator.end()) {
+                                frame = *frame_generator_it;
+                                ++frame_generator_it;
+                                ++fuzzed_inputs;
+                                frame_send_count = 1;
+                            } else {
+                                throw std::runtime_error("exhausted fuzz pool");
+                            }
                         }
+
+                        spdlog::info("fuzzed frame");
+                        pcap_sendpacket(handle, frame.data(), frame.size());
+                        monitor.frame_buff().push_back(*frame_generator_it);
+                        monitor.notify();
+                        break;  // we sent the frame, we can go to teardown
+                    } else {
+                        // we detected the frame from fuzzed device, but it was not the request we wanted,
+                        // we can len the monitor know about activity
+                        monitor.notify();
                     }
-
-                    pcap_sendpacket(handle, frame.data(), frame.size());
-                    monitor.frame_buff().push_back(*frame_generator_it);
                 }
-
-                monitor.notify();
-            }
-        } catch (std::runtime_error &e) {
-//            spdlog::warn("Caught exception.");
-        }
+            } catch (std::runtime_error &e) {}
+        } while (start_t + std::chrono::seconds(10) > std::chrono::system_clock::now());
 
         if (teardown != nullptr) {
+            spdlog::info("teardown");
             teardown(handle, fuzzer.source_mac, fuzzed_device_mac);
         }
 
         print_progress_bar(fuzzed_inputs, fuzzer.num_mutations());
-
-        // TODO fuj
-        if (fuzzed_inputs >= fuzzer.num_mutations()) {
-            break;
-        }
     }
 }
 
