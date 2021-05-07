@@ -9,7 +9,7 @@
 
 // TODO nech tam je toho viac, nevadi ze to bude trochu na dlhsie
 struct GenericTagFuzzer: public  Fuzzable, public TaggedParams {
-    explicit GenericTagFuzzer(std::uint8_t tag, std::uint8_t channel): TaggedParams(tag, *this, channel) {}
+    explicit GenericTagFuzzer(std::uint8_t tag, std::uint8_t channel, unsigned fuzz_random): TaggedParams(tag, *this, channel, fuzz_random) {}
 
     size_t num_mutations() override {
         return fuzzing_lengths.size() + fuzzing_claimed_lengths.size() + fuzzing_real_lengths.size();
@@ -30,6 +30,14 @@ struct GenericTagFuzzer: public  Fuzzable, public TaggedParams {
             auto data = get_filled_vector_with_len(6, 0x41);
             data[0] = len;     // set claimed len to fuzzed value
             co_yield data;
+        }
+
+        if (fuzz_random) {
+            for (int i = 0; i < fuzz_random; ++i) {
+                auto &rp = RandProvider::getInstance();
+                auto len = rp.get_byte();
+                co_yield combine_vec({{len}, rp.get_vector(len)});
+            }
         }
     }
 

@@ -153,7 +153,7 @@ void fuzz_prb_resp(
     teardown_f_t teardown
 ) {
     spdlog::info("fuzzing probe response");
-    ProbeResponseFuzzer fuzzer{src_mac, fuzz_device_mac, channel};
+    ProbeResponseFuzzer fuzzer{src_mac, fuzz_device_mac, channel, 10};  // TODO random config
     fuzz_response(
         handle,
         fuzzer,
@@ -176,7 +176,7 @@ void fuzz_beacon(
 ) {
     spdlog::info("fuzzing beacon");
     mac_t broadcast_mac{0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-    BeaconFrameFuzzer fuzzer{src_mac, broadcast_mac, channel};
+    BeaconFrameFuzzer fuzzer{src_mac, broadcast_mac, channel, 10};  // TODO random config
     fuzz_push(
         handle,
         fuzzer,

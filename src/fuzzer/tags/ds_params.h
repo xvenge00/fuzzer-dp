@@ -12,7 +12,7 @@
 #include "fuzzer/tags/tagged_params.h"
 
 struct DSParamsFuzzer: public Fuzzable, public TaggedParams {
-    DSParamsFuzzer(std::uint8_t channel): TaggedParams(0x03, *this, channel) {}
+    DSParamsFuzzer(std::uint8_t channel, unsigned fuzz_random): TaggedParams(0x03, *this, channel, fuzz_random) {}
 
     size_t num_mutations() override {
         return fuzzing_lengths.size() + invalid_channels.size();
@@ -26,6 +26,14 @@ struct DSParamsFuzzer: public Fuzzable, public TaggedParams {
 
         for (auto channel: invalid_channels) {
             co_yield fuzz_t{channel};
+        }
+
+        if (fuzz_random) {
+            for (int i = 0; i < fuzz_random; ++i) {
+                auto &rp = RandProvider::getInstance();
+                auto len = rp.get_byte();
+                co_yield combine_vec({{len}, rp.get_vector(len)});
+            }
         }
     }
 

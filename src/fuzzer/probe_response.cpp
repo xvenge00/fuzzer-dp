@@ -6,8 +6,9 @@
 ProbeResponseFuzzer::ProbeResponseFuzzer(
     mac_t source_mac,
     mac_t fuzzed_device_mac,
-    std::uint8_t channel
-): ResponseFuzzer(IEEE80211_FC0_SUBTYPE_PROBE_REQ, source_mac, fuzzed_device_mac), channel(channel) {}
+    std::uint8_t channel,
+    unsigned fuzz_random
+): ResponseFuzzer(IEEE80211_FC0_SUBTYPE_PROBE_REQ, source_mac, fuzzed_device_mac), channel(channel), fuzz_random(fuzz_random) {}
 
 size_t ProbeResponseFuzzer::num_mutations() {
     return fuzzer_ssid.num_mutations() +
@@ -98,7 +99,7 @@ generator<fuzz_t> ProbeResponseFuzzer::fuzz_prb_req_content() {
     }
 
     for (unsigned tag = 0; tag <= 255; ++tag) {
-        auto tag_fuzzer = GenericTagFuzzer(tag, channel);
+        auto tag_fuzzer = GenericTagFuzzer(tag, channel, fuzz_random);
         for (auto &fuzzed_params: tag_fuzzer.get_whole_param_set()) {
             co_yield combine_vec({timestamp, beacon_interval, capability, fuzzed_params});
         }

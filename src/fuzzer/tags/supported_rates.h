@@ -10,7 +10,7 @@
 #include "fuzzer/tags/tagged_params.h"
 
 struct SupportedRatesFuzzer: public Fuzzable, public TaggedParams {
-    SupportedRatesFuzzer(std::uint8_t channel): TaggedParams(0x01, *this, channel) {}
+    SupportedRatesFuzzer(std::uint8_t channel, unsigned fuzz_random): TaggedParams(0x01, *this, channel, fuzz_random) {}
 
     size_t num_mutations() override {
         return 1 + rates_len.size() + 1;
@@ -34,6 +34,14 @@ struct SupportedRatesFuzzer: public Fuzzable, public TaggedParams {
             {8},
             get_increasing_vector(255)
         });
+
+        if (fuzz_random) {
+            for (int i = 0; i < fuzz_random; ++i) {
+                auto &rp = RandProvider::getInstance();
+                auto len = rp.get_byte();
+                co_yield combine_vec({{len}, rp.get_vector(len)});
+            }
+        }
     }
 
     generator<std::vector<std::uint8_t>> get_whole_param_set() override {

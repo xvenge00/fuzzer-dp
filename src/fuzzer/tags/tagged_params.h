@@ -5,10 +5,11 @@
 #include <cinttypes>
 #include "utils/generator.h"
 #include "utils/vector_appender.h"
+#include "utils/rand.h"
 
 struct TaggedParams {
-    explicit TaggedParams(std::uint8_t tag, Fuzzable &fuzzer, std::uint8_t channel):
-        tag(tag), fuzzer(fuzzer), channel(channel) {}
+    explicit TaggedParams(std::uint8_t tag, Fuzzable &fuzzer, std::uint8_t channel, unsigned fuzz_random):
+        tag(tag), fuzzer(fuzzer), channel(channel), fuzz_random(fuzz_random) {}
 
     virtual ~TaggedParams() = default;
 
@@ -38,11 +39,20 @@ struct TaggedParams {
         for (auto &param: fuzzer.get_mutated()) {
             co_yield combine_vec({ssid, supp_rates, ds, param_tag, param});
         }
+
+        if (fuzz_random) {
+            for (unsigned i = 0; i < fuzz_random; ++i) {
+                auto &rp = RandProvider::getInstance();
+                auto len = rp.get_byte();
+                co_yield combine_vec({ssid, supp_rates, ds, {tag, len}, rp.get_vector(len)});
+            }
+        }
     };
 
     const std::uint8_t tag;
     Fuzzable &fuzzer;
     const std::uint8_t channel;
+    const unsigned fuzz_random;
 };
 
 #endif //CPP_TAGGED_PARAMS_H

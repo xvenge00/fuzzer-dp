@@ -8,7 +8,7 @@
 #include "fuzzer/tags/tagged_params.h"
 
 struct TIMFuzzer: public Fuzzable, public TaggedParams {
-    TIMFuzzer(std::uint8_t channel): TaggedParams(0x05, *this, channel) {}
+    TIMFuzzer(std::uint8_t channel, unsigned fuzz_random): TaggedParams(0x05, *this, channel, fuzz_random) {}
 
     size_t num_mutations() override {
         return fuzzing_lengths.size()
@@ -38,6 +38,14 @@ struct TIMFuzzer: public Fuzzable, public TaggedParams {
             auto data = get_filled_vector_with_len(6, 0x41);
             data[3] = dtim_period;  // set dtim period
             co_yield data;
+        }
+
+        if (fuzz_random) {
+            for (int i = 0; i < fuzz_random; ++i) {
+                auto &rp = RandProvider::getInstance();
+                auto len = rp.get_byte();
+                co_yield combine_vec({{len}, rp.get_vector(len)});
+            }
         }
     }
 

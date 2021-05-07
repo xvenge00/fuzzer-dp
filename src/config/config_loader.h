@@ -134,6 +134,7 @@ Config load_config(const std::filesystem::path &config_file) {
         .test_device_mac = parse_mac(config_node["test_device_mac"].as<std::string>()),
         .channel = config_node["channel"].as<std::uint8_t>(),
         .fuzzer_type = parse_fuzzer_type(config_node["fuzzer_type"].as<std::string>()),
+        .fuzz_random = config_node["fuzz_random"].as<unsigned>(),
         .set_up = parse_set_up(config_node["set_up"].as<std::string>()),
         .tear_down = parse_tear_down(config_node["tear_down"].as<std::string>()),
         .monitor = parse_monitor_config(config_node["monitor"]),

@@ -1,7 +1,7 @@
 #include <cstring>
 #include "fuzzer/utils/rt.h"
 #include "net80211.h"
-#include "rand.h"
+#include "utils/rand.h"
 #include "utils/vector_appender.h"
 #include "utils/debug.h"
 #include "fuzzer/disass_fuzzer.h"
