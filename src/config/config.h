@@ -23,6 +23,18 @@ enum MonitorType {
     SNIFFING,
 };
 
+enum SetUp {
+    NoSetUp,
+    Associate,
+    Authenticate,
+};
+
+enum TearDown {
+    NoTearDown,
+    Deauthentiacte,
+    Deassociate,
+};
+
 struct ConfigMonitor {
     unsigned frame_history_len;
     MonitorType type;
@@ -44,6 +56,8 @@ struct Config {
     std::array<std::uint8_t, 6> test_device_mac;
     std::uint8_t channel;
     FuzzerType fuzzer_type;
+    SetUp set_up;
+    TearDown tear_down;
     ConfigMonitor monitor;
     ConfigController controller;
 };
