@@ -11,6 +11,7 @@ enum FuzzerType {
     DISASS,
     DEAUTH,
     AUTH,
+    ASS_RESP,
     BEACON,
 };
 
@@ -20,6 +21,18 @@ enum MonitorType {
 #endif
     PASSIVE,
     SNIFFING,
+};
+
+enum SetUp {
+    NoSetUp,
+    Associate,
+    Authenticate,
+};
+
+enum TearDown {
+    NoTearDown,
+    Deauthentiacte,
+    Disassociate,
 };
 
 struct ConfigMonitor {
@@ -43,6 +56,9 @@ struct Config {
     std::array<std::uint8_t, 6> test_device_mac;
     std::uint8_t channel;
     FuzzerType fuzzer_type;
+    unsigned fuzz_random;
+    SetUp set_up;
+    TearDown tear_down;
     ConfigMonitor monitor;
     ConfigController controller;
 };

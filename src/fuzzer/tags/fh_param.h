@@ -11,7 +11,7 @@
 #include "fuzzer/tags/tagged_params.h"
 
 struct FHParamsFuzzer: public Fuzzable, public TaggedParams {
-    FHParamsFuzzer(std::uint8_t channel): TaggedParams(0x02, *this, channel) {}
+    FHParamsFuzzer(std::uint8_t channel, unsigned fuzz_random): TaggedParams(0x02, *this, channel, fuzz_random) {}
 
     size_t num_mutations() override {
         return fuzzing_lengths.size() + fuzzing_claimed_lengths.size() + fuzzing_real_lengths.size();
@@ -39,6 +39,14 @@ struct FHParamsFuzzer: public Fuzzable, public TaggedParams {
             auto data = get_filled_vector_with_len(5, 0x41);
             data[0] = len;     // set claimed len to fuzzed value
             co_yield data;
+        }
+
+        if (fuzz_random) {
+            for (int i = 0; i < fuzz_random; ++i) {
+                auto &rp = RandProvider::getInstance();
+                auto len = rp.get_byte();
+                co_yield combine_vec({{len}, rp.get_vector(len)});
+            }
         }
     }
 

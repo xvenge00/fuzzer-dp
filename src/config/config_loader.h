@@ -36,6 +36,8 @@ FuzzerType parse_fuzzer_type(std::string const& in ) {
         return AUTH;
     } else if (in == "beacon") {
         return BEACON;
+    } else if (in == "ass_resp") {
+        return ASS_RESP;
     } else {
         throw std::runtime_error(in + std::string(" is not valid fuzzer type"));
     }
@@ -99,6 +101,30 @@ ConfigController parse_controller_config(const YAML::Node &controller_node) {
     };
 }
 
+SetUp parse_set_up(const std::string &conf) {
+    if (conf == "null") {
+        return NoSetUp;
+    } else if (conf == "associate") {
+        return Associate;
+    } else if (conf == "authenticate") {
+        return Authenticate;
+    } else {
+        throw std::runtime_error("invalid setup");
+    }
+}
+
+TearDown parse_tear_down(const std::string &conf) {
+    if (conf == "null") {
+        return NoTearDown;
+    } else if (conf == "deauth") {
+        return Deauthentiacte;
+    } else if (conf == "disassociate") {
+        return Disassociate;
+    } else {
+        throw std::runtime_error("invalid setup");
+    }
+}
+
 Config load_config(const std::filesystem::path &config_file) {
     auto config_node = YAML::LoadFile(config_file);
     return {
@@ -108,6 +134,9 @@ Config load_config(const std::filesystem::path &config_file) {
         .test_device_mac = parse_mac(config_node["test_device_mac"].as<std::string>()),
         .channel = config_node["channel"].as<std::uint8_t>(),
         .fuzzer_type = parse_fuzzer_type(config_node["fuzzer_type"].as<std::string>()),
+        .fuzz_random = config_node["fuzz_random"].as<unsigned>(),
+        .set_up = parse_set_up(config_node["set_up"].as<std::string>()),
+        .tear_down = parse_tear_down(config_node["tear_down"].as<std::string>()),
         .monitor = parse_monitor_config(config_node["monitor"]),
         .controller = parse_controller_config(config_node["controller"]),
     };

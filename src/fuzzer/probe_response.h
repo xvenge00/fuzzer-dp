@@ -15,7 +15,8 @@ struct ProbeResponseFuzzer: public ResponseFuzzer {
     ProbeResponseFuzzer(
         mac_t source_mac,
         mac_t fuzzed_device_mac,
-        std::uint8_t channel
+        std::uint8_t channel,
+        unsigned fuzz_random
     );
 
     size_t num_mutations() override;
@@ -26,14 +27,15 @@ private:
     generator<fuzz_t> fuzz_prb_req_content();
 
     const std::uint8_t channel;
+    const unsigned fuzz_random;
 
-    SSIDFuzzer fuzzer_ssid{channel};
-    SupportedRatesFuzzer fuzzer_supported_rates{channel};
-    DSParamsFuzzer fuzzer_ds_params{channel};
-    FHParamsFuzzer fuzzer_fh_params{channel};
-    TIMFuzzer fuzzer_tim{channel};
-    CFParamsFuzzer fuzzer_cf_params{channel};
-    GenericTagFuzzer fuzzer_erp{0x2a, channel};
+    SSIDFuzzer fuzzer_ssid{channel, fuzz_random};
+    SupportedRatesFuzzer fuzzer_supported_rates{channel, fuzz_random};
+    DSParamsFuzzer fuzzer_ds_params{channel, fuzz_random};
+    FHParamsFuzzer fuzzer_fh_params{channel, fuzz_random};
+    TIMFuzzer fuzzer_tim{channel, fuzz_random};
+    CFParamsFuzzer fuzzer_cf_params{channel, fuzz_random};
+    GenericTagFuzzer fuzzer_erp{0x2a, channel, fuzz_random};
 };
 
 #endif //CPP_PROBE_RESPONSE_H

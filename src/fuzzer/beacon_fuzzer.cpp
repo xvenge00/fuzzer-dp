@@ -7,8 +7,9 @@
 BeaconFrameFuzzer::BeaconFrameFuzzer(
     mac_t src_mac,
     mac_t fuzzed_device_mac,
-    std::uint8_t channel
-): Fuzzer(src_mac, fuzzed_device_mac), channel(channel) {}
+    std::uint8_t channel,
+    unsigned fuzz_random
+): Fuzzer(src_mac, fuzzed_device_mac), channel(channel), fuzz_random(fuzz_random) {}
 
 generator<fuzz_t> BeaconFrameFuzzer::fuzz_content()
 {

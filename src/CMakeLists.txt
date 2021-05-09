@@ -2,7 +2,7 @@ add_subdirectory(fuzzer)
 add_subdirectory(utils)
 add_subdirectory(monitor)
 
-add_library(libwifuzz++ fuzzer_control.cpp radiotap.cpp)
+add_library(libwifuzz++ fuzzer_control.cpp radiotap.cpp setup.cpp teardown.cpp)
 
 target_link_libraries(libwifuzz++
 					  ${PCAP_LIBRARY}

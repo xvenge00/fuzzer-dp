@@ -1,6 +1,7 @@
 ---
-fuzzer_type: "beacon"
-interface: wlp7s0f4u2u2
+fuzzer_type: "prb_resp"
+#fuzzer_type: "ass_resp"
+interface: wlp7s0f4u2u3
 random_seed: 420
 src_mac: "8c:dc:02:d7:35:2b"  # zte router
 #test_device_mac: "d6:10:4e:27:f6:b0"  # mobil
@@ -8,7 +9,10 @@ test_device_mac: "3c:71:bf:a6:e6:d0" # ESP
 #test_device_mac: "08:c5:e1:15:98:1a"
 #test_device_mac: "0a:c5:e1:15:98:1a"
 #const std::array<std::uint8_t, 6>  my_mac = {0x00, 0x23, 0x45, 0x67, 0x89, 0xab};  // random
-channel: 5
+channel: 2
+set_up: associate
+tear_down: disassociate
+fuzz_random: 100
 
 monitor:
   frame_history_len: 10
@@ -23,4 +27,4 @@ monitor:
 
 controller:
   wait_duration_ms: 100
-  packet_resend_count: 5
+  packet_resend_count: 1
