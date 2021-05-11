@@ -40,8 +40,7 @@ private:
         const std::size_t ieee802_11_size = header->caplen - rt_size;
 
         try {
-            // TODO rename get_prb_req_mac
-            auto *mac = get_prb_req_mac(ieee802_11_data, ieee802_11_size);
+            auto *mac = get_src_mac(ieee802_11_data, ieee802_11_size);
             if (strncmp((const char *) mac, (const char *) monitor->fuzzed_device_mac.data(), 6) == 0) {
                 monitor->notify();
             }

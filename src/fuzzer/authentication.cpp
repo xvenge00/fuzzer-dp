@@ -30,7 +30,6 @@ const std::vector<std::uint16_t> &get_uint16_set(bool use_bigger) {
  * Status code (2B)
  * Challenge text (variable)
  */
-// TODO transaction number fuzzing
 generator<fuzz_t> AuthenticationFuzzer::get_mutated() {
     std::vector<std::uint8_t> rt = get_base_rt();
 
@@ -64,8 +63,6 @@ generator<fuzz_t> AuthenticationFuzzer::get_mutated() {
 
                 co_yield combine_vec({rt, ieee802_frame_, codes, str_vec});
             }
-
-            // TODO fuzz long strings
         }
     }
 }

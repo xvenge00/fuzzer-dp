@@ -7,7 +7,6 @@
 #include "fuzzer/utils/vector_generators.h"
 #include "fuzzer/tags/tagged_params.h"
 
-// TODO nech tam je toho viac, nevadi ze to bude trochu na dlhsie
 struct GenericTagFuzzer: public  Fuzzable, public TaggedParams {
     explicit GenericTagFuzzer(std::uint8_t tag, std::uint8_t channel, unsigned fuzz_random): TaggedParams(tag, *this, channel, fuzz_random) {}
 

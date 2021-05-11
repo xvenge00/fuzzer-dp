@@ -6,7 +6,6 @@
 #include "config/config.h"
 #include <yaml-cpp/yaml.h>
 
-// TODO to cpp
 // from https://stackoverflow.com/questions/276099/c-converting-a-mac-id-string-into-an-array-of-uint8-t
 std::array<uint8_t, 6> parse_mac(std::string const& in) {
     unsigned int bytes[6];

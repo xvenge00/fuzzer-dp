@@ -55,8 +55,7 @@ void fuzz_response(
             const std::size_t ieee802_11_size = header.caplen - rt_size;
 
             try {
-                // TODO rename get_prb_req_mac
-                auto *mac = get_prb_req_mac(ieee802_11_data, ieee802_11_size);
+                auto *mac = get_src_mac(ieee802_11_data, ieee802_11_size);
                 if (strncmp((const char *) mac, (const char *) fuzzed_device_mac.data(), 6) == 0) {
                     if (get_frame_type(ieee802_11_data, ieee802_11_size) == fuzzer.responds_to_subtype) {
                         if (frame_send_count < packets_resend_count) {
@@ -133,7 +132,6 @@ void fuzz_push(
 
         print_progress_bar(fuzzed_inputs, fuzzer.num_mutations());
 
-        // TODO fuj
         if (fuzzed_inputs >= fuzzer.num_mutations()) {
             break;
         }
@@ -149,34 +147,36 @@ void fuzz_prb_resp(
     const std::uint8_t channel,
     unsigned packets_resend_count,
     Monitor &monitor,
+    unsigned fuzz_random,
     setup_f_t setup,
     teardown_f_t teardown
 ) {
     spdlog::info("fuzzing probe response");
-    ProbeResponseFuzzer fuzzer{src_mac, fuzz_device_mac, channel, 10};  // TODO random config
+    ProbeResponseFuzzer fuzzer{src_mac, fuzz_device_mac, channel, fuzz_random};
     fuzz_response(
         handle,
         fuzzer,
         packets_resend_count,
         fuzz_device_mac,
         monitor,
-        associate,
-        deauth);
+        setup,
+        teardown);
 }
 
 void fuzz_beacon(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
-    const std::uint8_t channel,
+    std::uint8_t channel,
     Monitor &monitor,
     const std::chrono::milliseconds &wait_duration,
     unsigned packets_resend_count,
+    unsigned fuzz_random,
     setup_f_t setup,
     teardown_f_t teardown
 ) {
     spdlog::info("fuzzing beacon");
     mac_t broadcast_mac{0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-    BeaconFrameFuzzer fuzzer{src_mac, broadcast_mac, channel, 10};  // TODO random config
+    BeaconFrameFuzzer fuzzer{src_mac, broadcast_mac, channel, fuzz_random};
     fuzz_push(
         handle,
         fuzzer,
@@ -339,6 +339,7 @@ int fuzz(const Config &config) {
             config.channel,
             config.controller.packet_resend_count,
             *monitor,
+            config.fuzz_random,
             setup_f,
             teardown_f);
         break;
@@ -350,6 +351,7 @@ int fuzz(const Config &config) {
             *monitor,
             config.controller.wait_duration,
             config.controller.packet_resend_count,
+            config.fuzz_random,
             setup_f,
             teardown_f);
         break;
@@ -386,10 +388,6 @@ int fuzz(const Config &config) {
             setup_f,
             teardown_f);
         break;
-//    case ASS_RESP:
-//        // TODO
-//        fuzz_ass_resp(handle, config.src_mac, config.test_device_mac);
-//        break;
     }
 
     print_report(monitor->detected_failure(), config.monitor.dump_file);

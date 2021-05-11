@@ -30,7 +30,7 @@ fuzz_t get_deauth(mac_t fuzzed_device_mac, mac_t source_mac) {
 
     std::vector<std::uint8_t> ieee802_frame_ {(std::uint8_t *)&ieee802_frame, (std::uint8_t *)&ieee802_frame + sizeof(struct ieee80211_frame)};
 
-    return combine_vec({rt, ieee802_frame_, {3,0}});    // TODO pozri co znamena 3,0
+    return combine_vec({rt, ieee802_frame_, {3,0}});
 }
 
 fuzz_t get_dissassociation(mac_t fuzzed_device_mac, mac_t source_mac) {
@@ -55,7 +55,7 @@ fuzz_t get_dissassociation(mac_t fuzzed_device_mac, mac_t source_mac) {
 
     std::vector<std::uint8_t> ieee802_frame_ {(std::uint8_t *)&ieee802_frame, (std::uint8_t *)&ieee802_frame + sizeof(struct ieee80211_frame)};
 
-    return combine_vec({rt, ieee802_frame_, {3,0}});    // TODO pozri co znamena 3,0
+    return combine_vec({rt, ieee802_frame_, {3,0}});
 }
 
 void deauth(

@@ -9,7 +9,7 @@ std::size_t get_radiotap_size(const std::uint8_t *data, std::size_t len) {
     return 0;
 }
 
-const std::uint8_t *get_prb_req_mac(const std::uint8_t *data, std::size_t len) {
+const std::uint8_t *get_src_mac(const std::uint8_t *data, std::size_t len) {
     if (len < 16) {
         throw std::runtime_error("frame too small to extract req mac");
     }
