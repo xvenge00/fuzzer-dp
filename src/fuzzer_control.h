@@ -26,10 +26,11 @@ void fuzz_prb_resp(
 void fuzz_beacon(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
-    const std::uint8_t channel,
+    std::uint8_t channel,
     Monitor &monitor,
     const std::chrono::milliseconds &wait_duration,
     unsigned packets_resend_count,
+    unsigned fuzz_random,
     setup_f_t setup = nullptr,
     teardown_f_t teardown = nullptr
 );
@@ -83,6 +84,7 @@ void fuzz_response(
     unsigned packets_resend_count,
     const std::array<std::uint8_t, 6> &fuzzed_device_mac,
     Monitor &monitor,
+    unsigned fuzz_random,
     setup_f_t setup = nullptr,
     teardown_f_t teardown = nullptr
 );

@@ -97,7 +97,7 @@ std::vector<std::uint8_t> get_auth_succ(
     /* auth content */
     std::vector<std::uint8_t> content = {
         0x00, 0x00, // open system
-        0x02, 0x00, // seq num TODO check if correct endianess
+        0x02, 0x00, // seq num
         0x00, 0x00,  // successful
     };
 
@@ -194,7 +194,7 @@ void associate(
         const std::size_t ieee802_11_size = header.caplen - rt_size;
 
         try{
-            auto *mac = get_prb_req_mac(ieee802_11_data, ieee802_11_size);
+            auto *mac = get_src_mac(ieee802_11_data, ieee802_11_size);
             if (strncmp((const char *)mac, (const char*) fuzzed_device_mac.data(), 6) == 0) {
                 if (get_frame_type(ieee802_11_data, ieee802_11_size) == 0x40) { // prb request
                     for (int i = 0; i < 1; ++i) {
@@ -243,7 +243,7 @@ void authenticate(
         const std::size_t ieee802_11_size = header.caplen - rt_size;
 
         try{
-            auto *mac = get_prb_req_mac(ieee802_11_data, ieee802_11_size);
+            auto *mac = get_src_mac(ieee802_11_data, ieee802_11_size);
             if (strncmp((const char *)mac, (const char*) fuzzed_device_mac.data(), 6) == 0) {
                 if (get_frame_type(ieee802_11_data, ieee802_11_size) == 0x40) { // prb request
                     for (int i = 0; i < 15; ++i) {
