@@ -3,6 +3,13 @@
 
 #include <pcap.h>
 
+void prb_resp(
+    pcap *handle,
+    const std::array<std::uint8_t, 6> &src_mac,
+    const std::array<std::uint8_t, 6> &fuzzed_device_mac,
+    std::uint8_t channel
+);
+
 void associate(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,

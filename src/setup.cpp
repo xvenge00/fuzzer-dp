@@ -178,6 +178,39 @@ std::vector<std::uint8_t> get_ass_succ(
     return result;
 }
 
+void prb_resp(
+    pcap *handle,
+    const std::array<std::uint8_t, 6> &src_mac,
+    const std::array<std::uint8_t, 6> &fuzzed_device_mac,
+    std::uint8_t channel
+) {
+    struct pcap_pkthdr header{};
+
+    auto prb_resp = get_prb_req(src_mac, fuzzed_device_mac, channel);
+
+    while(true) {
+        const u_char *packet = pcap_next(handle, &header);
+
+        size_t rt_size = get_radiotap_size(packet, header.caplen);
+        const std::uint8_t *ieee802_11_data = packet + rt_size;
+        const std::size_t ieee802_11_size = header.caplen - rt_size;
+
+        try {
+            auto *mac = get_src_mac(ieee802_11_data, ieee802_11_size);
+            if (strncmp((const char *) mac, (const char *) fuzzed_device_mac.data(), 6) == 0) {
+                if (get_frame_type(ieee802_11_data, ieee802_11_size) == 0x40) { // prb request
+                    pcap_sendpacket(handle, prb_resp.data(), prb_resp.size());
+                    break;
+                }
+                if (get_frame_type(ieee802_11_data, ieee802_11_size) == (0xb0 & 0x4)) { // rts
+                    auto cts = get_cts(fuzzed_device_mac);
+                    pcap_sendpacket(handle, cts.data(), cts.size());
+                }
+            }
+        } catch (std::runtime_error &e) {}
+    }
+}
+
 void associate(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,

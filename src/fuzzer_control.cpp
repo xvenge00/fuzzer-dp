@@ -14,6 +14,7 @@
 #include "fuzzer/disass_fuzzer.h"
 #include "fuzzer/deauth_fuzzer.h"
 #include "fuzzer/authentication.h"
+#include "fuzzer/auth_resp_fuzzer.h"
 #include "utils/frame.h"
 #include "monitor/monitor_passive.h"
 #include "setup.h"
@@ -267,6 +268,31 @@ void fuzz_auth(
     );
 }
 
+void fuzz_auth_resp(
+    pcap *handle,
+    const std::array<std::uint8_t, 6> &src_mac,
+    const std::array<std::uint8_t, 6> &fuzz_device_mac,
+    const std::uint8_t channel,
+    unsigned packets_resend_count,
+    Monitor &monitor,
+    unsigned fuzz_random,
+    setup_f_t setup,
+    teardown_f_t teardown
+) {
+    spdlog::info("fuzzing auth response");
+    auto fuzzer = AuthRespFuzzer{src_mac, fuzz_device_mac, channel, fuzz_random};
+    fuzz_response(
+        handle,
+        fuzzer,
+        packets_resend_count,
+        fuzz_device_mac,
+        monitor,
+        channel,
+        setup,
+        teardown
+    );
+}
+
 std::unique_ptr<Monitor> build_monitor(const ConfigMonitor &config, mac_t target) {
     switch (config.type) {
 #ifdef GRPC_ENABLED
@@ -301,6 +327,8 @@ setup_f_t get_setup_f(SetUp setup) {
         return authenticate;
     case SetUp::Associate:
         return associate;
+    case SetUp::PrbResp:
+        return prb_resp;
     default:
         throw std::logic_error("SetUp not implemented");
     }
@@ -386,6 +414,18 @@ int fuzz(const Config &config) {
             config.controller.wait_duration,
             config.controller.packet_resend_count,
             config.channel,
+            setup_f,
+            teardown_f);
+        break;
+    case AUTH_RESP:
+        fuzz_auth_resp(
+            handle,
+            config.src_mac,
+            config.test_device_mac,
+            config.channel,
+            config.controller.packet_resend_count,
+            *monitor,
+            config.fuzz_random,
             setup_f,
             teardown_f);
         break;

@@ -33,6 +33,8 @@ FuzzerType parse_fuzzer_type(std::string const& in ) {
         return DEAUTH;
     } else if (in == "auth") {
         return AUTH;
+    } else if (in == "auth_resp") {
+        return AUTH_RESP;
     } else if (in == "beacon") {
         return BEACON;
     } else if (in == "ass_resp") {
@@ -107,6 +109,8 @@ SetUp parse_set_up(const std::string &conf) {
         return Associate;
     } else if (conf == "authenticate") {
         return Authenticate;
+    } else if (conf == "prb_resp") {
+        return PrbResp;
     } else {
         throw std::runtime_error("invalid setup");
     }
