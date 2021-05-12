@@ -42,10 +42,9 @@ generator<fuzz_t> AuthenticationFuzzer::get_mutated() {
     ieee802_frame.i_dur[0] = 0x3a;    // copied from wireshark
     ieee802_frame.i_dur[1] = 0x01;
 
-    mac_t broadcast_mac{0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
-    memcpy(ieee802_frame.i_addr1, broadcast_mac.data(), 6);   // copy destination mac
+    memcpy(ieee802_frame.i_addr1, fuzzed_device_mac.data(), 6);   // copy destination mac
     memcpy(ieee802_frame.i_addr2, source_mac.data(), 6);   // copy my mac
-    memcpy(ieee802_frame.i_addr3, broadcast_mac.data(), 6);   // copy my mac
+    memcpy(ieee802_frame.i_addr3, fuzzed_device_mac.data(), 6);   // copy my mac
 
     // idk why
     ieee802_frame.i_seq[0] = 0x90;
