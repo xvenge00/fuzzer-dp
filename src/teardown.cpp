@@ -61,7 +61,8 @@ fuzz_t get_dissassociation(mac_t fuzzed_device_mac, mac_t source_mac) {
 void deauth(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
-    const std::array<std::uint8_t, 6> &fuzzed_device_mac
+    const std::array<std::uint8_t, 6> &fuzzed_device_mac,
+    std::uint8_t channel
 ) {
 
     auto deauth_frame = get_deauth(fuzzed_device_mac, src_mac);
@@ -73,7 +74,8 @@ void deauth(
 void disass(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
-    const std::array<std::uint8_t, 6> &fuzzed_device_mac
+    const std::array<std::uint8_t, 6> &fuzzed_device_mac,
+    std::uint8_t channel
 ) {
 
     auto disass_frame = get_dissassociation(fuzzed_device_mac, src_mac);

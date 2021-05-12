@@ -11,7 +11,8 @@
 
 std::vector<std::uint8_t> get_prb_req(
     const std::array<std::uint8_t, 6> &src_mac,
-    const std::array<std::uint8_t, 6> &fuzzed_device_mac
+    const std::array<std::uint8_t, 6> &fuzzed_device_mac,
+    std::uint8_t channel
 ) {
     std::vector<std::uint8_t> rt = get_base_rt();
 
@@ -56,7 +57,7 @@ std::vector<std::uint8_t> get_prb_req(
     std::vector<std::uint8_t> ds {
         0x03,   // ds
         0x01,   //len
-        0x02    // channel 2
+        channel // channel
     };
 
     auto result = combine_vec({
@@ -125,7 +126,8 @@ std::vector<std::uint8_t> get_cts(
 
 std::vector<std::uint8_t> get_ass_succ(
     mac_t src_mac,
-    mac_t target_mac
+    mac_t target_mac,
+    std::uint8_t channel
 ) {
     std::vector<std::uint8_t> rt = get_base_rt();
 
@@ -163,7 +165,7 @@ std::vector<std::uint8_t> get_ass_succ(
     std::vector<std::uint8_t> ds {
         0x03,   // ds
         0x01,   //len
-        0x02    // channel 2
+        channel // channel 2
     };
 
     auto result = combine_vec({
@@ -179,12 +181,13 @@ std::vector<std::uint8_t> get_ass_succ(
 void associate(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
-    const std::array<std::uint8_t, 6> &fuzzed_device_mac
+    const std::array<std::uint8_t, 6> &fuzzed_device_mac,
+    std::uint8_t channel
 ) {
     struct pcap_pkthdr header{};
 
     // wait for prb req and send them
-    auto prb_resp = get_prb_req(src_mac, fuzzed_device_mac);
+    auto prb_resp = get_prb_req(src_mac, fuzzed_device_mac, channel);
 
     while(true) {
         const u_char *packet = pcap_next(handle, &header);
@@ -214,7 +217,7 @@ void associate(
                     }
                 }
                 if (get_frame_type(ieee802_11_data, ieee802_11_size) == (0x00)) { // ass req
-                    auto ass_resp = get_ass_succ(src_mac, fuzzed_device_mac);
+                    auto ass_resp = get_ass_succ(src_mac, fuzzed_device_mac, channel);
                     for (int i = 0; i < 1; ++i) {
                         pcap_sendpacket(handle, ass_resp.data(), ass_resp.size());
                     }
@@ -228,12 +231,13 @@ void associate(
 void authenticate(
     pcap *handle,
     const std::array<std::uint8_t, 6> &src_mac,
-    const std::array<std::uint8_t, 6> &fuzzed_device_mac
+    const std::array<std::uint8_t, 6> &fuzzed_device_mac,
+    std::uint8_t channel
 ) {
     struct pcap_pkthdr header{};
 
     // wait for prb req and send them
-    auto prb_resp = get_prb_req(src_mac, fuzzed_device_mac);
+    auto prb_resp = get_prb_req(src_mac, fuzzed_device_mac, channel);
 
     while(true) {
         const u_char *packet = pcap_next(handle, &header);
