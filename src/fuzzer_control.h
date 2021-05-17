@@ -9,8 +9,8 @@
 #include "monitor/monitor.h"
 #include "config/config.h"
 
-using setup_f_t = void (*) (pcap *, const mac_t &, const mac_t &);
-using teardown_f_t = void (*) (pcap *, const mac_t &, const mac_t &);
+using setup_f_t = void (*) (pcap *, const mac_t &, const mac_t &, std::uint8_t);
+using teardown_f_t = void (*) (pcap *, const mac_t &, const mac_t &, std::uint8_t);
 
 void fuzz_prb_resp(
     pcap *handle,
@@ -42,6 +42,7 @@ void fuzz_disass(
     Monitor &monitor,
     const std::chrono::milliseconds &wait_duration,
     unsigned packets_resend_count,
+    std::uint8_t channel,
     setup_f_t setup = nullptr,
     teardown_f_t teardown = nullptr
 );
@@ -53,6 +54,7 @@ void fuzz_deauth(
     Monitor &monitor,
     const std::chrono::milliseconds &wait_duration,
     unsigned packets_resend_count,
+    std::uint8_t channel,
     setup_f_t setup = nullptr,
     teardown_f_t teardown = nullptr
 );
@@ -64,6 +66,7 @@ void fuzz_auth(
     Monitor &monitor,
     const std::chrono::milliseconds &wait_duration,
     unsigned packets_resend_count,
+    std::uint8_t channel,
     setup_f_t setup = nullptr,
     teardown_f_t teardown = nullptr
 );
@@ -74,6 +77,7 @@ void fuzz_push(
     const std::chrono::milliseconds &wait_duration,
     unsigned packets_resend_count,
     Monitor &monitor,
+    std::uint8_t channel,
     setup_f_t = nullptr,
     teardown_f_t teardown = nullptr
 );
@@ -85,6 +89,7 @@ void fuzz_response(
     const std::array<std::uint8_t, 6> &fuzzed_device_mac,
     Monitor &monitor,
     unsigned fuzz_random,
+    std::uint8_t channel,
     setup_f_t setup = nullptr,
     teardown_f_t teardown = nullptr
 );

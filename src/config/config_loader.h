@@ -33,6 +33,8 @@ FuzzerType parse_fuzzer_type(std::string const& in ) {
         return DEAUTH;
     } else if (in == "auth") {
         return AUTH;
+    } else if (in == "auth_resp") {
+        return AUTH_RESP;
     } else if (in == "beacon") {
         return BEACON;
     } else if (in == "ass_resp") {
@@ -107,6 +109,8 @@ SetUp parse_set_up(const std::string &conf) {
         return Associate;
     } else if (conf == "authenticate") {
         return Authenticate;
+    } else if (conf == "prb_resp") {
+        return PrbResp;
     } else {
         throw std::runtime_error("invalid setup");
     }
@@ -131,7 +135,7 @@ Config load_config(const std::filesystem::path &config_file) {
         .random_seed = config_node["random_seed"].as<unsigned>(),
         .src_mac = parse_mac(config_node["src_mac"].as<std::string>()),
         .test_device_mac = parse_mac(config_node["test_device_mac"].as<std::string>()),
-        .channel = config_node["channel"].as<std::uint8_t>(),
+        .channel = (std::uint8_t) config_node["channel"].as<unsigned>(),    // as std::uint8 doesn't work
         .fuzzer_type = parse_fuzzer_type(config_node["fuzzer_type"].as<std::string>()),
         .fuzz_random = config_node["fuzz_random"].as<unsigned>(),
         .set_up = parse_set_up(config_node["set_up"].as<std::string>()),

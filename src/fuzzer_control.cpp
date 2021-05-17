@@ -14,6 +14,7 @@
 #include "fuzzer/disass_fuzzer.h"
 #include "fuzzer/deauth_fuzzer.h"
 #include "fuzzer/authentication.h"
+#include "fuzzer/auth_resp_fuzzer.h"
 #include "utils/frame.h"
 #include "monitor/monitor_passive.h"
 #include "setup.h"
@@ -29,6 +30,7 @@ void fuzz_response(
     unsigned packets_resend_count,
     const std::array<std::uint8_t, 6> &fuzzed_device_mac,
     Monitor &monitor,
+    std::uint8_t channel,
     setup_f_t setup,
     teardown_f_t teardown
 ) {
@@ -41,7 +43,7 @@ void fuzz_response(
 
     for(unsigned fuzzed_inputs = 0; fuzzed_inputs < fuzzer.num_mutations(); /*incremented inside loop*/) {
         if (setup != nullptr) {
-            setup(handle, fuzzer.source_mac, fuzzed_device_mac);
+            setup(handle, fuzzer.source_mac, fuzzed_device_mac, channel);
         }
 
         auto start_t = std::chrono::system_clock::now();
@@ -87,7 +89,7 @@ void fuzz_response(
         } while (start_t + std::chrono::seconds(10) > std::chrono::system_clock::now());
 
         if (teardown != nullptr) {
-            teardown(handle, fuzzer.source_mac, fuzzed_device_mac);
+            teardown(handle, fuzzer.source_mac, fuzzed_device_mac, channel);
         }
 
         print_progress_bar(fuzzed_inputs, fuzzer.num_mutations());
@@ -100,6 +102,7 @@ void fuzz_push(
     const std::chrono::milliseconds &wait_duration,
     unsigned packets_resend_count,
     Monitor &monitor,
+    std::uint8_t channel,
     setup_f_t setup,
     teardown_f_t teardown
 ) {
@@ -110,7 +113,7 @@ void fuzz_push(
 
     while (true) {
         if (setup != nullptr) {
-            setup(handle, fuzzer.source_mac, fuzzer.fuzzed_device_mac);
+            setup(handle, fuzzer.source_mac, fuzzer.fuzzed_device_mac, channel);
         }
 
         if (frame_generator_it != frame_generator.end()) {
@@ -127,7 +130,7 @@ void fuzz_push(
         }
 
         if (teardown != nullptr) {
-            teardown(handle, fuzzer.source_mac, fuzzer.fuzzed_device_mac);
+            teardown(handle, fuzzer.source_mac, fuzzer.fuzzed_device_mac, channel);
         }
 
         print_progress_bar(fuzzed_inputs, fuzzer.num_mutations());
@@ -159,6 +162,7 @@ void fuzz_prb_resp(
         packets_resend_count,
         fuzz_device_mac,
         monitor,
+        channel,
         setup,
         teardown);
 }
@@ -183,6 +187,7 @@ void fuzz_beacon(
         wait_duration,
         packets_resend_count,
         monitor,
+        channel,
         nullptr,
         nullptr
     );
@@ -195,6 +200,7 @@ void fuzz_disass(
     Monitor &monitor,
     const std::chrono::milliseconds &wait_duration,
     unsigned packets_resend_count,
+    std::uint8_t channel,
     setup_f_t setup,
     teardown_f_t teardown
 ) {
@@ -206,6 +212,7 @@ void fuzz_disass(
         wait_duration,
         packets_resend_count,
         monitor,
+        channel,
         setup,
         teardown
     );
@@ -218,6 +225,7 @@ void fuzz_deauth(
     Monitor &monitor,
     const std::chrono::milliseconds &wait_duration,
     unsigned packets_resend_count,
+    std::uint8_t channel,
     setup_f_t setup,
     teardown_f_t teardown
 ) {
@@ -229,6 +237,7 @@ void fuzz_deauth(
         wait_duration,
         packets_resend_count,
         monitor,
+        channel,
         setup,
         teardown
     );
@@ -241,6 +250,7 @@ void fuzz_auth(
     Monitor &monitor,
     const std::chrono::milliseconds &wait_duration,
     unsigned packets_resend_count,
+    std::uint8_t channel,
     setup_f_t setup,
     teardown_f_t teardown
 ) {
@@ -252,6 +262,32 @@ void fuzz_auth(
         wait_duration,
         packets_resend_count,
         monitor,
+        channel,
+        setup,
+        teardown
+    );
+}
+
+void fuzz_auth_resp(
+    pcap *handle,
+    const std::array<std::uint8_t, 6> &src_mac,
+    const std::array<std::uint8_t, 6> &fuzz_device_mac,
+    const std::uint8_t channel,
+    unsigned packets_resend_count,
+    Monitor &monitor,
+    unsigned fuzz_random,
+    setup_f_t setup,
+    teardown_f_t teardown
+) {
+    spdlog::info("fuzzing auth response");
+    auto fuzzer = AuthRespFuzzer{src_mac, fuzz_device_mac, channel, fuzz_random};
+    fuzz_response(
+        handle,
+        fuzzer,
+        packets_resend_count,
+        fuzz_device_mac,
+        monitor,
+        channel,
         setup,
         teardown
     );
@@ -291,6 +327,8 @@ setup_f_t get_setup_f(SetUp setup) {
         return authenticate;
     case SetUp::Associate:
         return associate;
+    case SetUp::PrbResp:
+        return prb_resp;
     default:
         throw std::logic_error("SetUp not implemented");
     }
@@ -363,6 +401,7 @@ int fuzz(const Config &config) {
             *monitor,
             config.controller.wait_duration,
             config.controller.packet_resend_count,
+            config.channel,
             setup_f,
             teardown_f);
         break;
@@ -374,6 +413,19 @@ int fuzz(const Config &config) {
             *monitor,
             config.controller.wait_duration,
             config.controller.packet_resend_count,
+            config.channel,
+            setup_f,
+            teardown_f);
+        break;
+    case AUTH_RESP:
+        fuzz_auth_resp(
+            handle,
+            config.src_mac,
+            config.test_device_mac,
+            config.channel,
+            config.controller.packet_resend_count,
+            *monitor,
+            config.fuzz_random,
             setup_f,
             teardown_f);
         break;
@@ -385,6 +437,7 @@ int fuzz(const Config &config) {
             *monitor,
             config.controller.wait_duration,
             config.controller.packet_resend_count,
+            config.channel,
             setup_f,
             teardown_f);
         break;

@@ -11,6 +11,7 @@ enum FuzzerType {
     DISASS,
     DEAUTH,
     AUTH,
+    AUTH_RESP,
     ASS_RESP,
     BEACON,
 };
@@ -25,6 +26,7 @@ enum MonitorType {
 
 enum SetUp {
     NoSetUp,
+    PrbResp,
     Associate,
     Authenticate,
 };

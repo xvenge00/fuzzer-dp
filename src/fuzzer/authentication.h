@@ -18,6 +18,8 @@ struct AuthenticationFuzzer: public Fuzzer {
     size_t num_mutations() override;
 
 private:
+    const std::vector<std::uint16_t> &get_uint16_set(bool use_bigger);
+
     const bool use_bigger_alg_num_set;
     const bool use_bigger_trans_num_set;
     const bool use_bigger_stat_code_set;
