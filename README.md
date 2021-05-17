@@ -3,6 +3,23 @@
 A Wi-Fi fuzzer implemented in C++.
 Uses generator coroutines to effortlessly generate fuzzed content.
 
+## Warning
+Due to the reliance on coroutines the code must be compiled with GCC.
+Thanks to a bug in newer version of compiler (internal compiler errors) the code must be compiled with the GCC v10.2.0 and not the newest 11.1.
+Dockerfile can be used for compilation until the bugs are resolved.
+
+### Dockerfile
+
+To build the dockerfile run:
+```shell
+docker build -t fuzzer .
+docker run --rm -it -v $(pwd):/code fuzzer
+cd /code
+```
+
+Then you can continue with the normal build. 
+
+
 ## Build
 Two versions can be build:
  - with GRPC monitor support
@@ -11,7 +28,7 @@ Two versions can be build:
 ### No GRPC
 To build basic version without GRPC monitor support you need to satisfy dependencies:
  - cmake >= 3.17
- - g++ == 10.2.0 (tried newer version on debian produces internal compiler errors)
+ - g++ == 10.2.0 (newer versions produces internal compiler errors)
  - libpcap-dev
  - libspdlog-dev
  - libyaml-cpp-dev
@@ -53,18 +70,26 @@ pacman -S pkgconfig grpc
 #### Compile protofiles 
 To compile protofiles to `.cpp` and `.h` files run in source root directory:
 ```shell
-protoc -I ./proto --cpp_out=build/proto ./proto/monitor.proto
+mkdir -p build/proto && protoc -I ./proto --cpp_out=build/proto ./proto/monitor.proto
 ```
 
 #### Build itself
 ```shell
-cd build && make -j
+mkdir build
+cd build
+cmake -DGRPC_ENABLED=1 ..
+make -j
 ```
 
 
 ## Usage
 
 Produced binary is in `build/src/wifuzz++`
+
+### Prerequisites
+The wireless interfaces used must be in the monitor mode before starting the program.
+Also, they have to be set to the correct channel.
+This can be done by [Airmon-ng](https://www.aircrack-ng.org/doku.php?id=airmon-ng) or manually.
 
 Program takes one argument, which is a config file in `/yaml` format.
 
@@ -73,7 +98,7 @@ Program takes one argument, which is a config file in `/yaml` format.
 Example config can be found in `conf/wifuzz.yaml`.
 
 #### fuzzer_type
-Can be one of `"beacon"`, `"prb_resp"`, `"auth"`, `"deauth"`, `"deass"`
+Can be one of `"beacon"`, `"prb_resp"`, `"auth"`, `"auth_resp"`, `"deauth"`, `"deass"`
 ```yaml
 fuzzer_type: "beacon"
 ```
@@ -100,6 +125,13 @@ src_mac: "8c:dc:02:12:34:56"
 An address of the fuzzed device `"3c:71:bf:78:90:12"`
 ```yaml
 test_device_mac: "3c:71:bf:78:90:12"
+```
+
+#### fuzz_random
+Number of the random contents tried for each information element (total random inputs tried = `fuzz_random * 256`)
+
+```yaml
+fuzz_random: 100
 ```
 
 #### controller
@@ -132,7 +164,7 @@ Config:
 ```yaml
 monitor:
     type: snifing
-    timeout_s: 50s
+    timeout_s: 50
     interface: wpl3s0
 ```
 
@@ -144,7 +176,7 @@ Config:
 ```yaml
 monitor:
     type: grpc
-    server_address: 0.0.0.0:500051
+    server_address: 0.0.0.0:50051
 ```
 
 
