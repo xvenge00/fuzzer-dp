@@ -29,7 +29,6 @@ std::vector<std::uint8_t> get_prb_req(
     memcpy(ieee802_frame.i_addr2, src_mac.data(), 6);   // copy my mac
     memcpy(ieee802_frame.i_addr3, src_mac.data(), 6);   // copy my mac
 
-    // idk why
     ieee802_frame.i_seq[0] = 0x90;
     ieee802_frame.i_seq[1] = 0x08;
 
@@ -89,7 +88,6 @@ std::vector<std::uint8_t> get_auth_succ(
     memcpy(ieee802_frame.i_addr2, src_mac.data(), 6);   // copy my mac
     memcpy(ieee802_frame.i_addr3, src_mac.data(), 6);   // copy my mac
 
-    // idk why
     ieee802_frame.i_seq[0] = 0x90;
     ieee802_frame.i_seq[1] = 0x08;
 
@@ -144,7 +142,6 @@ std::vector<std::uint8_t> get_ass_succ(
     memcpy(ieee802_frame.i_addr2, src_mac.data(), 6);   // copy my mac
     memcpy(ieee802_frame.i_addr3, src_mac.data(), 6);   // copy my mac
 
-    // idk why
     ieee802_frame.i_seq[0] = 0x90;
     ieee802_frame.i_seq[1] = 0x08;
 

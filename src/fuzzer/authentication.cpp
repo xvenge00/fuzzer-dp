@@ -46,7 +46,6 @@ generator<fuzz_t> AuthenticationFuzzer::get_mutated() {
     memcpy(ieee802_frame.i_addr2, source_mac.data(), 6);   // copy my mac
     memcpy(ieee802_frame.i_addr3, fuzzed_device_mac.data(), 6);   // copy my mac
 
-    // idk why
     ieee802_frame.i_seq[0] = 0x90;
     ieee802_frame.i_seq[1] = 0x08;
 
