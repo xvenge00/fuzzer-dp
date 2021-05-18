@@ -1,3 +1,8 @@
+/*
+ * Author: Adam Venger (xvenge00)
+ * 2021
+ */
+
 #ifndef CPP_CF_PARAM_H
 #define CPP_CF_PARAM_H
 

@@ -1,3 +1,9 @@
+/*
+ * Author: Adam Venger (xvenge00)
+ * 2021
+ */
+
+
 #include <cstdint>
 #include "hash.h"
 

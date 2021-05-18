@@ -1,3 +1,9 @@
+/*
+ * Author: Adam Venger (xvenge00)
+ * 2021
+ */
+
+
 #include <cinttypes>
 #include <pcap.h>
 #include <vector>

@@ -1,3 +1,9 @@
+/*
+ * Author: Adam Venger (xvenge00)
+ * 2021
+ */
+
+
 #include <spdlog/spdlog.h>
 #include "monitor_passive.h"
 

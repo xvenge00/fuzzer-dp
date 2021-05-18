@@ -1,3 +1,8 @@
+/*
+ * Author: Adam Venger (xvenge00)
+ * 2021
+ */
+
 #include "string.h"
 
 namespace primitives {

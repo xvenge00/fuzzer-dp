@@ -1,3 +1,9 @@
+/*
+ * Author: Adam Venger (xvenge00)
+ * 2021
+ */
+
+
 #ifndef CPP_BEACON_FUZZER_H
 #define CPP_BEACON_FUZZER_H
 

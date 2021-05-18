@@ -1,3 +1,9 @@
+/*
+ * Author: Adam Venger (xvenge00)
+ * 2021
+ */
+
+
 #ifndef CPP_AUTHENTICATION_H
 #define CPP_AUTHENTICATION_H
 

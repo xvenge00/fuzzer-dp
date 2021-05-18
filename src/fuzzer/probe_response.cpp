@@ -1,3 +1,9 @@
+/*
+ * Author: Adam Venger (xvenge00)
+ * 2021
+ */
+
+
 #include <cstring>
 #include "probe_response.h"
 #include "net80211.h"

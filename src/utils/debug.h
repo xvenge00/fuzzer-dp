@@ -1,3 +1,9 @@
+/*
+ * Author: Adam Venger (xvenge00)
+ * 2021
+ */
+
+
 #ifndef CPP_DEBUG_H
 #define CPP_DEBUG_H
 

@@ -1,3 +1,8 @@
+/*
+ * Author: Adam Venger (xvenge00)
+ * 2021
+ */
+
 #ifndef CPP_SUPPORTED_RATES_H
 #define CPP_SUPPORTED_RATES_H
 

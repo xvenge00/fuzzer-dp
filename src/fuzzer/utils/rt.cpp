@@ -1,7 +1,13 @@
+/*
+ * Author: Adam Venger (xvenge00)
+ * 2021
+ */
+
 #include "rt.h"
 
 
 std::vector<std::uint8_t> get_base_rt() {
+    // The radiotap content is based on example from https://gist.github.com/jonhoo/7780260
     return {
         0x00, 0x00, // <-- radiotap version (ignore this)
         0x18, 0x00, // <-- number of bytes in our header (count the number of "0x"s)

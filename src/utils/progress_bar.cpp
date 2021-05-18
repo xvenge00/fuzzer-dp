@@ -1,7 +1,13 @@
+/*
+ * Author: Adam Venger (xvenge00)
+ * 2021
+ */
+
+
 #include "progress_bar.h"
 #include <iostream>
-#include <sys/ioctl.h> //ioctl() and TIOCGWINSZ
-#include <unistd.h> // for STDOUT_FILENO
+#include <sys/ioctl.h>
+#include <unistd.h>
 
 void print_progress_bar(unsigned current, unsigned max) {
     struct winsize size;

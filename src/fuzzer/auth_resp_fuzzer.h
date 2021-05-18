@@ -1,3 +1,9 @@
+/*
+ * Author: Adam Venger (xvenge00)
+ * 2021
+ */
+
+
 #ifndef CPP_AUTH_RESP_FUZZER_H
 #define CPP_AUTH_RESP_FUZZER_H
 

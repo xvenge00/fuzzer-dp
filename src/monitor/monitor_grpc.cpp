@@ -1,3 +1,9 @@
+/*
+ * Author: Adam Venger (xvenge00)
+ * 2021
+ */
+
+
 #include "monitor_grpc.h"
 #include <spdlog/spdlog.h>
 

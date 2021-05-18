@@ -1,3 +1,9 @@
+/*
+ * Author: Adam Venger (xvenge00)
+ * 2021
+ */
+
+
 #include <fstream>
 #include "logging.h"
 #include "utils/debug.h"

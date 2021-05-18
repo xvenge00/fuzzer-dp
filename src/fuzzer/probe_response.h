@@ -1,3 +1,9 @@
+/*
+ * Author: Adam Venger (xvenge00)
+ * 2021
+ */
+
+
 #ifndef CPP_PROBE_RESPONSE_H
 #define CPP_PROBE_RESPONSE_H
 

@@ -1,3 +1,9 @@
+/*
+ * Author: Adam Venger (xvenge00)
+ * 2021
+ */
+
+
 #include <cstring>
 #include "fuzzer/utils/rt.h"
 #include "auth_resp_fuzzer.h"

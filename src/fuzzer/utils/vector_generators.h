@@ -1,3 +1,8 @@
+/*
+ * Author: Adam Venger (xvenge00)
+ * 2021
+ */
+
 #ifndef CPP_VECTOR_GENERATORS_H
 #define CPP_VECTOR_GENERATORS_H
 

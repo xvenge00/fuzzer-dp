@@ -1,3 +1,8 @@
+/*
+ * Author: Adam Venger (xvenge00)
+ * 2021
+ */
+
 #ifndef CPP_GENERIC_TAG_H
 #define CPP_GENERIC_TAG_H
 

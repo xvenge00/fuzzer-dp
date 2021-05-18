@@ -1,3 +1,9 @@
+/*
+ * Author: Adam Venger (xvenge00)
+ * 2021
+ */
+
+
 #include <utils/vector_appender.h>
 #include <spdlog/spdlog.h>
 #include "net80211.h"
